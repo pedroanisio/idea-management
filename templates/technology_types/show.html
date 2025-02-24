@@ -1,0 +1,66 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ type.name }} - Technology Types - Idea Management{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-4xl">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="flex justify-between items-start mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">{{ type.name }}</h1>
+            <div class="flex space-x-4">
+                <a href="{{ url_for('technology_types_edit', id=type.id) }}" 
+                    class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded">
+                    Edit
+                </a>
+                <form method="POST" action="{{ url_for('technology_types_delete', id=type.id) }}" class="inline">
+                    <button type="submit" onclick="return confirm('Are you sure you want to delete this type?')"
+                        class="bg-red-100 text-red-700 hover:bg-red-200 px-4 py-2 rounded">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if type.description %}
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">Description</h2>
+            <p class="text-gray-600 whitespace-pre-line">{{ type.description }}</p>
+        </div>
+        {% endif %}
+
+        <div class="border-t pt-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Technologies</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for tech in type.technologies %}
+                <div class="bg-gray-50 p-4 rounded">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-semibold text-gray-800">{{ tech.name }}</h3>
+                    </div>
+                    {% if tech.description %}
+                    <p class="text-gray-600 mt-2">{{ tech.description|truncate(100) }}</p>
+                    {% endif %}
+                    <div class="mt-2">
+                        {% for version in tech.versions %}
+                        <span class="inline-block bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded mr-2 mb-2">
+                            {{ version.version }}
+                            {% if version.is_default %}
+                            <span class="text-green-600 ml-1" title="Default Version">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                            {% endif %}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    <a href="{{ url_for('techstacks_show', id=tech.id) }}" 
+                        class="text-blue-500 hover:text-blue-600 text-sm mt-2 inline-block">
+                        View Details →
+                    </a>
+                </div>
+                {% else %}
+                <p class="text-gray-500 col-span-2">No technologies of this type yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

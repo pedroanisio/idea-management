@@ -1,0 +1,46 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Link Evolution Cycle - Idea Management{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-2xl">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Link Evolution Cycle</h1>
+        
+        <div class="bg-purple-50 p-4 rounded-lg mb-6">
+            <h2 class="text-sm font-medium text-purple-800 mb-2">Linking Evolution Cycle to Idea:</h2>
+            <div class="flex items-center justify-between">
+                <span class="text-lg text-purple-900">{{ idea.name|default('Untitled Idea') }}</span>
+                <a href="{{ url_for('ideas_show', id=idea.id) }}" 
+                   class="text-purple-600 hover:text-purple-700 text-sm">
+                    View Idea →
+                </a>
+            </div>
+        </div>
+        
+        <form method="POST" action="{{ url_for('evolutions_link', idea_id=idea.id) }}" class="space-y-6">
+            <div>
+                <label for="evolution_id" class="block text-sm font-medium text-gray-700">Select Evolution Cycle</label>
+                <select name="evolution_id" id="evolution_id" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Choose an evolution cycle...</option>
+                    {% for cycle in available_cycles %}
+                    <option value="{{ cycle.id }}">{{ cycle.name }} {% if cycle.idea %}(Currently linked to: {{ cycle.idea.name }}){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('ideas_show', id=idea.id) }}" 
+                    class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded">
+                    Cancel
+                </a>
+                <button type="submit" 
+                    class="bg-purple-500 text-white hover:bg-purple-600 px-4 py-2 rounded">
+                    Link Evolution Cycle
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

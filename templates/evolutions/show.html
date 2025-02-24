@@ -1,0 +1,150 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ cycle.name }} - Idea Management{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-4xl">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="flex justify-between items-start mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">{{ cycle.name }}</h1>
+            <div class="flex space-x-4">
+                <a href="{{ url_for('evolutions_edit', id=cycle.id) }}" 
+                    class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded">
+                    Edit
+                </a>
+                <form method="POST" action="{{ url_for('evolutions_delete', id=cycle.id) }}" class="inline">
+                    <button type="submit" onclick="return confirm('Are you sure you want to delete this evolution cycle? This will also delete all associated phases and requirements.')"
+                        class="bg-red-100 text-red-700 hover:bg-red-200 px-4 py-2 rounded">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="flex space-x-4 mb-4">
+                <span class="status-badge bg-blue-100 text-blue-800 px-3 py-1 rounded">
+                    {{ cycle.status.name }}
+                </span>
+            </div>
+            <p class="text-gray-700 whitespace-pre-line">{{ cycle.description }}</p>
+        </div>
+
+        <div class="border-t pt-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Associated Ideas</h2>
+            <div class="space-y-4">
+                {% for idea_cycle in cycle.ideas %}
+                <div class="bg-gray-50 p-4 rounded">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">{{ idea_cycle.idea.name }}</h3>
+                            <p class="text-gray-600 mt-1">{{ idea_cycle.idea.description|truncate(100) }}</p>
+                        </div>
+                        <span class="status-badge bg-{{ 'green' if idea_cycle.status.name == 'Completed' else 'blue' }}-100 
+                                   text-{{ 'green' if idea_cycle.status.name == 'Completed' else 'blue' }}-800 px-3 py-1 rounded">
+                            {{ idea_cycle.status.name }}
+                        </span>
+                    </div>
+
+                    <!-- Tech Stacks Section -->
+                    <div class="mt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-sm font-medium text-gray-700">Tech Stack</h4>
+                            <a href="{{ url_for('evolutions_add_techstack', id=idea_cycle.id) }}" 
+                               class="text-sm text-blue-600 hover:text-blue-800">
+                                + Add Tech Stack
+                            </a>
+                        </div>
+                        {% if idea_cycle.tech_stacks %}
+                            <div class="space-y-2">
+                                {% for stack in idea_cycle.tech_stacks %}
+                                    <div class="bg-white p-3 rounded border">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h5 class="text-sm font-medium">{{ stack.name }}</h5>
+                                                {% if stack.description %}
+                                                    <p class="text-xs text-gray-600">{{ stack.description }}</p>
+                                                {% endif %}
+                                                {% if stack.technologies %}
+                                                    <div class="flex flex-wrap gap-1 mt-1">
+                                                        {% for tech in stack.technologies %}
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                                                {{ tech.name }}
+                                                            </span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <form method="POST" 
+                                                  action="{{ url_for('evolutions_remove_techstack', id=idea_cycle.id, stack_id=stack.id) }}"
+                                                  class="ml-2">
+                                                <button type="submit" 
+                                                        onclick="return confirm('Are you sure you want to remove this tech stack?')"
+                                                        class="text-red-600 hover:text-red-800 text-sm">
+                                                    Remove
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-sm text-gray-500 italic">No tech stacks assigned</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Phases</h4>
+                        <div class="space-y-2">
+                            {% for idea_phase in idea_cycle.phases|sort(attribute='order') %}
+                                <div class="bg-white p-3 rounded border">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h5 class="text-sm font-medium">
+                                                {{ idea_phase.phase.name }}
+                                                <span class="text-gray-500 text-xs">(Order: {{ idea_phase.order }})</span>
+                                            </h5>
+                                            <p class="text-xs text-gray-600">{{ idea_phase.phase.description }}</p>
+                                        </div>
+                                        <span class="status-badge bg-{{ 'green' if idea_phase.status.name == 'Completed' else 'blue' }}-100 
+                                                   text-{{ 'green' if idea_phase.status.name == 'Completed' else 'blue' }}-800 
+                                                   px-2 py-0.5 rounded text-xs">
+                                            {{ idea_phase.status.name }}
+                                        </span>
+                                    </div>
+
+                                    {% if idea_phase.requirements %}
+                                        <div class="mt-2">
+                                            <h6 class="text-xs font-medium text-gray-700">Requirements</h6>
+                                            <ul class="mt-1 space-y-1">
+                                                {% for req in idea_phase.requirements %}
+                                                    <li class="text-xs">
+                                                        <span class="font-medium">{{ req.name }}</span>
+                                                        {% if req.type %}
+                                                            <span class="text-gray-500">({{ req.type.name }})</span>
+                                                        {% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{{ url_for('ideas_show', id=idea_cycle.idea.id) }}" 
+                           class="text-blue-600 hover:text-blue-800 text-sm">
+                            View Idea →
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                    <p class="text-gray-500 italic">No ideas associated with this evolution cycle.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

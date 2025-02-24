@@ -1,0 +1,37 @@
+<nav class="bg-gray-800 text-white shadow-md">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center">
+                <a href="{{ url_for('index') }}" class="text-xl font-bold">Idea Management</a>
+            </div>
+            <div class="flex items-center space-x-2">
+                <a href="{{ url_for('ideas') }}" 
+                    class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'ideas' %}bg-gray-700{% endif %}">
+                    Ideas
+                </a>
+                <a href="{{ url_for('evolutions') }}" 
+                    class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'evolutions' %}bg-gray-700{% endif %}">
+                    Evolution Cycles
+                </a>
+                <div class="border-l border-gray-600 h-6 mx-2"></div>
+                <a href="{{ url_for('requirements') }}" 
+                    class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'requirements' %}bg-gray-700{% endif %}">
+                    Requirements
+                </a>
+                <a href="{{ url_for('phases') }}" 
+                    class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'phases' %}bg-gray-700{% endif %}">
+                    Phases
+                </a>
+                <div class="border-l border-gray-600 h-6 mx-2"></div>
+                <a href="{{ url_for('techstacks') }}" 
+                    class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'techstacks' %}bg-gray-700{% endif %}">
+                    Tech Stacks
+                </a>
+                <a href="{{ url_for('technologies') }}" 
+                    class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'technologies' %}bg-gray-700{% endif %}">
+                    Technologies
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>

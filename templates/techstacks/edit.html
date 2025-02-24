@@ -1,0 +1,87 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Edit {{ tech_stack.name }} - Idea Management{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-2xl">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Edit Tech Stack</h1>
+        
+        <form method="POST" action="{{ url_for('techstacks_edit', id=tech_stack.id) }}" class="space-y-6">
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" name="name" id="name" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="e.g., MEAN Stack, LAMP Stack"
+                    value="{{ tech_stack.name }}">
+            </div>
+
+            <div>
+                <label for="type_id" class="block text-sm font-medium text-gray-700">Type</label>
+                <select name="type_id" id="type_id" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Select a type...</option>
+                    {% for type in types %}
+                    <option value="{{ type.id }}" {% if tech_stack.type_id == type.id %}selected{% endif %}>
+                        {{ type.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea name="description" id="description" rows="4"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Brief description of this tech stack...">{{ tech_stack.description }}</textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Technologies and Versions</label>
+                <div class="space-y-4">
+                    {% for tech in technologies %}
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="font-medium text-gray-800 mb-2">{{ tech.name }}</h3>
+                        {% if tech.versions %}
+                        <div class="ml-4 space-y-2">
+                            {% for version in tech.versions %}
+                            <label class="flex items-center">
+                                <input type="checkbox" 
+                                       name="technology_versions[]" 
+                                       value="{{ version.id }}"
+                                       {% if version in tech_stack.technology_versions %}checked{% endif %}
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2">{{ version.version }}</span>
+                                {% if version.is_default %}
+                                <span class="ml-1 text-green-500">(Default)</span>
+                                {% endif %}
+                                {% if version.release_date %}
+                                <span class="ml-2 text-sm text-gray-500">
+                                    Released: {{ version.release_date.strftime('%Y-%m-%d') }}
+                                </span>
+                                {% endif %}
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-500 ml-4">No versions available</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('techstacks') }}" 
+                    class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded">
+                    Cancel
+                </a>
+                <button type="submit" 
+                    class="bg-purple-500 text-white hover:bg-purple-600 px-4 py-2 rounded">
+                    Update Tech Stack
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
