@@ -1,0 +1,162 @@
+/* Custom color variables */
+:root {
+  --color-intelligence-purple: #7C3AED;
+  --color-neural-blue: #3B82F6;
+  --color-discovery-blue: #60A5FA;
+  --color-performance-green: #10B981;
+  --color-innovation-orange: #F59E0B;
+  --color-alert-red: #EF4444;
+  --color-insight-gray: #6B7280;
+  --color-algorithm-gray: #F3F4F6;
+  --color-cognitive-white: #FFFFFF;
+  --color-data-text: #1F2937;
+  --color-interface-divider: #E5E7EB;
+}
+
+/* Dark mode colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-intelligence-purple: #8B5CF6;
+    --color-neural-blue: #60A5FA;
+    --color-discovery-blue: #93C5FD;
+    --color-performance-green: #34D399;
+    --color-innovation-orange: #FBBF24;
+    --color-alert-red: #F87171;
+    --color-insight-gray: #9CA3AF;
+    --color-algorithm-gray: #1F2937;
+    --color-cognitive-white: #111827;
+    --color-data-text: #F9FAFB;
+    --color-interface-divider: #374151;
+  }
+}
+
+/* Custom utility classes */
+.primary-data {
+    @apply text-sm font-medium text-data-text;
+}
+
+.secondary-data {
+    @apply text-sm text-data-text/60;
+}
+
+.tertiary-data {
+    @apply text-xs text-data-text/40;
+}
+
+.section-header {
+    @apply flex items-center space-x-3 mb-6;
+}
+
+.section-header h1,
+.section-header h2,
+.section-header h3 {
+    @apply text-2xl font-bold text-data-text;
+}
+
+.metric-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6;
+}
+
+.mb-section {
+    @apply mb-8;
+}
+
+/* Icon utility classes */
+.experiment {
+    @apply fas fa-flask;
+}
+
+.optimize {
+    @apply fas fa-chart-line;
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-input {
+    @apply mt-1 block w-full rounded-md border-interface-divider shadow-sm focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20;
+}
+
+.form-label {
+    @apply block text-sm font-medium text-data-text;
+}
+
+.form-helper {
+    @apply mt-2 text-sm text-data-text/60;
+}
+
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-interface-divider);
+  border-radius: 0.375rem;
+  background-color: var(--color-cognitive-white);
+  color: var(--color-data-text);
+}
+
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-intelligence-purple);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* Button styles */
+.btn {
+    @apply inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors;
+}
+
+.btn-primary {
+    @apply bg-intelligence-purple text-white hover:bg-intelligence-purple/90 focus:ring-intelligence-purple;
+}
+
+.btn-secondary {
+    @apply bg-white text-data-text border-interface-divider hover:bg-algorithm-gray focus:ring-intelligence-purple;
+}
+
+/* Responsive navigation */
+.mobile-menu {
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.mobile-menu.show {
+  transform: translateX(0);
+}
+
+/* Card transitions */
+.card-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Utility classes */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

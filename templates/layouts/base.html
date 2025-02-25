@@ -3,53 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Idea Management{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    {% block styles %}{% endblock %}
-</head>
-<body class="bg-algorithm-gray dark:bg-neural-blue text-data-text dark:text-cognitive-white min-h-screen flex flex-col">
-    {% include 'layouts/navbar.html' %}
+    <title>{% block title %}{% endblock %} - Idea Management</title>
     
-    <main class="flex-grow container mx-auto px-4 py-6">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="fixed top-20 right-4 z-50 space-y-2">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} p-4 rounded shadow-lg {% if category == 'success' %}bg-green-100 text-green-700 border-l-4 border-green-500{% elif category == 'danger' %}bg-red-100 text-red-700 border-l-4 border-red-500{% elif category == 'warning' %}bg-yellow-100 text-yellow-700 border-l-4 border-yellow-500{% else %}bg-blue-100 text-blue-700 border-l-4 border-blue-500{% endif %}">
-                            {{ message }}
-                            <button onclick="this.parentElement.remove()" class="float-right font-bold">&times;</button>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-        
+    {# Tailwind CSS #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'neural-blue': '#1E2A5E',
+                        'cognitive-white': '#FFFFFF',
+                        'algorithm-gray': '#F5F7FA',
+                        'interface-divider': '#E2E8F0',
+                        'data-text': '#2D3748',
+                        'intelligence-purple': '#6B46C1',
+                        'discovery-blue': '#60A5FA',
+                        'performance-green': '#10B981'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    {# Custom CSS #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    
+    {# Font Awesome #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="min-h-screen bg-algorithm-gray text-data-text" x-data="{ mobileMenuOpen: false }">
+    {# Import macros #}
+    {% from 'layouts/components/alerts.html' import alert %}
+    
+    {# Navigation #}
+    {% include 'layouts/navbar.html' %}
+
+    {# Flash Messages #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mx-auto px-4 mt-4">
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        {{ alert('error', message) }}
+                    {% else %}
+                        {{ alert('success', message) }}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {# Main Content #}
+    <main class="py-6">
         {% block content %}{% endblock %}
     </main>
-    
+
+    {# Footer #}
     {% include 'layouts/components/footer.html' %}
-    
-    <!-- Add theme toggle button -->
-    <button id="theme-toggle" 
-            class="fixed bottom-4 right-4 p-2 rounded-full bg-neural-blue dark:bg-cognitive-white text-cognitive-white dark:text-neural-blue shadow-lg hover:opacity-90 transition-opacity"
-            aria-label="Toggle theme">
-        <!-- Sun icon for dark mode -->
-        <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <!-- Moon icon for light mode -->
-        <svg class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-    </button>
-    
-    <!-- Core JavaScript -->
-    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/loading-states.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/view-switcher.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
-    {% block scripts %}{% endblock %}
+
+    {# Alpine.js #}
+    <script defer src="{{ url_for('static', filename='js/alpine.min.js') }}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,97 +1,69 @@
 {% extends 'layouts/base.html' %}
+{% from 'layouts/components/cards.html' import metric_card, data_card %}
+{% from 'layouts/components/badges.html' import status_badge %}
+{% from 'layouts/components/buttons.html' import action_button %}
 
 {% block title %}Dashboard - Idea Management{% endblock %}
 
 {% block content %}
 <div class="container mx-auto">
-    <h1 class="text-3xl font-bold mb-6">Idea Management Dashboard</h1>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-2">Ideas</h2>
-            <p class="text-4xl font-bold text-blue-600">{{ ideas_count|default(0) }}</p>
-            <p class="mt-2 text-gray-600">Total ideas</p>
-            <a href="{{ url_for('ideas') }}" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">View All</a>
-        </div>
-        
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-2">Requirements</h2>
-            <p class="text-4xl font-bold text-green-600">{{ requirements_count|default(0) }}</p>
-            <p class="mt-2 text-gray-600">Total requirements</p>
-            <a href="{{ url_for('requirements') }}" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">View All</a>
-        </div>
-        
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-2">Evolution Cycles</h2>
-            <p class="text-4xl font-bold text-purple-600">{{ evolutions_count|default(0) }}</p>
-            <p class="mt-2 text-gray-600">Total cycles</p>
-            <a href="{{ url_for('evolutions') }}" class="mt-4 inline-block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">View All</a>
-        </div>
-        
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-2">Tech Stacks</h2>
-            <p class="text-4xl font-bold text-yellow-600">{{ techstacks_count|default(0) }}</p>
-            <p class="mt-2 text-gray-600">Total tech stacks</p>
-            <a href="{{ url_for('techstacks') }}" class="mt-4 inline-block px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">View All</a>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-2">Technologies</h2>
-            <p class="text-4xl font-bold text-orange-600">{{ technologies_count|default(0) }}</p>
-            <p class="mt-2 text-gray-600">Total technologies</p>
-            <a href="{{ url_for('technologies') }}" class="mt-4 inline-block px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">View All</a>
-        </div>
+    <div class="section-header">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <h1 class="mb-0">Idea Management Dashboard</h1>
     </div>
     
-    <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
+    <div class="metric-grid mb-section">
+        {{ metric_card('Ideas', ideas_count|default(0), chart_type='trend') }}
+        {{ metric_card('Requirements', requirements_count|default(0), chart_type='trend') }}
+        {{ metric_card('Evolution Cycles', evolutions_count|default(0), chart_type='trend') }}
+        {{ metric_card('Tech Stacks', techstacks_count|default(0), chart_type='distribution') }}
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% call data_card('Recent Activity') %}
             <div class="space-y-4">
                 {% if activities %}
                     {% for activity in activities %}
-                        <div class="border-b pb-4 last:border-b-0">
-                            <div class="flex items-center mb-2">
-                                <span class="inline-block w-2 h-2 rounded-full mr-2
-                                    {% if activity.type == 'idea' %}bg-blue-500
-                                    {% elif activity.type == 'requirement' %}bg-green-500
-                                    {% else %}bg-yellow-500{% endif %}">
-                                </span>
-                                <p class="text-gray-800">{{ activity.description }}</p>
+                        <div class="flex items-start space-x-3 pb-4 border-b border-interface-divider last:border-b-0">
+                            {% if activity.type == 'idea' %}
+                                <svg class="w-5 h-5 text-intelligence-purple mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                            {% elif activity.type == 'requirement' %}
+                                <svg class="w-5 h-5 text-performance-green mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                </svg>
+                            {% else %}
+                                <svg class="w-5 h-5 text-innovation-orange mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                            {% endif %}
+                            <div class="flex-1">
+                                <p class="primary-data">{{ activity.description }}</p>
+                                <p class="tertiary-data">{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                             </div>
-                            <p class="text-sm text-gray-500">{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-gray-500">No recent activity</p>
+                    <p class="secondary-data">No recent activity</p>
                 {% endif %}
             </div>
-        </div>
+        {% endcall %}
 
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+        {% call data_card('Quick Actions') %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <a href="{{ url_for('ideas_create') }}" 
-                    class="flex items-center justify-center p-4 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100">
-                    <span class="text-lg">➕</span>
-                    <span class="ml-2">New Idea</span>
-                </a>
-                <a href="{{ url_for('evolution_phases_create', id=evolution_cycles[0].id) if evolution_cycles else '#' }}" 
-                    class="flex items-center justify-center p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100">
-                    <span class="text-lg">📋</span>
-                    <span class="ml-2">New Phase</span>
-                </a>
-                <a href="{{ url_for('techstacks_create') }}" 
-                    class="flex items-center justify-center p-4 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100">
-                    <span class="text-lg">🔧</span>
-                    <span class="ml-2">New Tech Stack</span>
-                </a>
-                <a href="{{ url_for('technologies_create') }}" 
-                    class="flex items-center justify-center p-4 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100">
-                    <span class="text-lg">💻</span>
-                    <span class="ml-2">New Technology</span>
-                </a>
+                {{ action_button('New Idea', 'experiment', icon='experiment', href=url_for('ideas_create')) }}
+                
+                {{ action_button('New Phase', 'optimize', icon='optimize', 
+                    href=url_for('evolution_phases_create', id=evolution_cycles[0].id) if evolution_cycles else '#') }}
+                
+                {{ action_button('New Tech Stack', 'experiment', icon='experiment', href=url_for('techstacks_create')) }}
+                
+                {{ action_button('New Requirement', 'optimize', icon='optimize', href=url_for('requirements_create')) }}
             </div>
-        </div>
+        {% endcall %}
     </div>
 </div>
 {% endblock %}

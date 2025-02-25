@@ -7,180 +7,126 @@
     <nav class="text-sm mb-6">
         <ol class="list-none p-0 inline-flex items-center">
             <li class="inline-flex items-center">
-                <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-blue-600">Home</a>
-                <span class="mx-2 text-gray-500">/</span>
+                <a href="{{ url_for('index') }}" class="text-data-text/60 hover:text-intelligence-purple">Home</a>
+                <span class="mx-2 text-data-text/40">/</span>
             </li>
             <li class="inline-flex items-center">
-                <a href="{{ url_for('ideas_show', id=requirement.idea_evolution_phase.idea_evolution_cycle.idea.id) }}" class="text-gray-600 hover:text-blue-600">{{ requirement.idea_evolution_phase.idea_evolution_cycle.idea.title }}</a>
-                <span class="mx-2 text-gray-500">/</span>
+                <a href="{{ url_for('ideas_show', id=requirement.idea_evolution_phase.idea_evolution_cycle.idea.id) }}" 
+                   class="text-data-text/60 hover:text-intelligence-purple">
+                    {{ requirement.idea_evolution_phase.idea_evolution_cycle.idea.title }}
+                </a>
+                <span class="mx-2 text-data-text/40">/</span>
             </li>
-            <li class="text-gray-800">{{ requirement.name }}</li>
+            <li class="text-data-text">{{ requirement.name }}</li>
         </ol>
     </nav>
 
     <!-- Header Section -->
-    <div class="bg-white rounded-xl shadow-sm p-8 mb-6">
+    <div class="bg-cognitive-white rounded-lg shadow-sm p-8 mb-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-                <div class="flex items-center gap-3 text-gray-500 text-sm mb-2">
+                <div class="flex items-center gap-3 text-data-text/60 text-sm mb-2">
                     <span class="flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                        <i class="fas fa-clock text-sm"></i>
                         Created {{ requirement.created_at.strftime('%B %d, %Y') }}
                     </span>
                     {% if requirement.updated_at != requirement.created_at %}
                     <span class="flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
+                        <i class="fas fa-sync-alt text-sm"></i>
                         Updated {{ requirement.updated_at.strftime('%B %d, %Y') }}
                     </span>
                     {% endif %}
                 </div>
-                <h1 class="text-3xl font-bold text-gray-800">{{ requirement.name }}</h1>
+                <h1 class="text-2xl font-bold text-data-text">{{ requirement.name }}</h1>
             </div>
             <div class="flex gap-3">
                 <a href="{{ url_for('requirements_edit', id=requirement.id) }}" 
-                    class="inline-flex items-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                    Edit
+                   class="btn bg-discovery-blue/10 text-discovery-blue hover:bg-discovery-blue/20">
+                    <i class="fas fa-edit mr-2"></i> Edit
                 </a>
-                <form method="POST" action="{{ url_for('requirements_delete', id=requirement.id) }}" class="inline">
+                <form action="{{ url_for('requirements_delete', id=requirement.id) }}" method="POST" class="inline">
                     <button type="submit" onclick="return confirm('Are you sure you want to delete this requirement?')"
-                        class="inline-flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                        Delete
+                            class="btn bg-red-100 text-red-700 hover:bg-red-200">
+                        <i class="fas fa-trash-alt mr-2"></i> Delete
                     </button>
                 </form>
             </div>
         </div>
 
-        <!-- Status and Priority Section -->
-        <div class="flex flex-wrap gap-4 mb-8">
-            <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg">
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <div>
-                    <div class="text-xs text-gray-500">Status</div>
-                    <div class="font-medium">{{ requirement.status.name if requirement.status else 'Not Started' }}</div>
-                </div>
+        <!-- Metadata -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-algorithm-gray rounded-lg p-4">
+                <h3 class="text-sm font-medium text-data-text/60 mb-2">Type</h3>
+                <p class="text-data-text">{{ requirement.type.name if requirement.type else 'Not specified' }}</p>
             </div>
-            <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg">
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-                <div>
-                    <div class="text-xs text-gray-500">Priority</div>
-                    <div class="font-medium">{{ requirement.priority.name }}</div>
-                </div>
+            <div class="bg-algorithm-gray rounded-lg p-4">
+                <h3 class="text-sm font-medium text-data-text/60 mb-2">Priority</h3>
+                <p class="text-data-text">{{ requirement.priority.name if requirement.priority else 'Not specified' }}</p>
             </div>
-            <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg">
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                </svg>
-                <div>
-                    <div class="text-xs text-gray-500">Type</div>
-                    <div class="font-medium">{{ requirement.type.name }}</div>
-                </div>
+            <div class="bg-algorithm-gray rounded-lg p-4">
+                <h3 class="text-sm font-medium text-data-text/60 mb-2">Status</h3>
+                <p class="text-data-text">{{ requirement.status.name if requirement.status else 'Not specified' }}</p>
             </div>
         </div>
+    </div>
 
-        <!-- Description Section -->
+    <!-- Description Section -->
+    <div class="bg-cognitive-white rounded-lg shadow-sm p-8 mb-6">
         <div class="prose max-w-none">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Description</h2>
-            <div class="bg-gray-50 rounded-lg p-6">
-                <p class="text-gray-700 whitespace-pre-line">{{ requirement.description }}</p>
+            <h2 class="text-xl font-semibold text-data-text mb-4">Description</h2>
+            <div class="bg-algorithm-gray rounded-lg p-6">
+                <p class="text-data-text/80 whitespace-pre-wrap">{{ requirement.description }}</p>
             </div>
         </div>
     </div>
 
     <!-- Context Section -->
-    <div class="bg-white rounded-xl shadow-sm p-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-6">Requirement Context</h2>
+    <div class="bg-cognitive-white rounded-lg shadow-sm p-8">
+        <h2 class="text-xl font-semibold text-data-text mb-6">Requirement Context</h2>
         
         <div class="space-y-6">
             <!-- Idea Context -->
-            <div class="border border-gray-100 rounded-lg p-6">
+            <div class="border border-interface-divider rounded-lg p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                        </svg>
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-900">Idea</h3>
-                            <p class="text-sm text-gray-500">{{ requirement.idea_evolution_phase.idea_evolution_cycle.idea.title }}</p>
-                        </div>
+                        <i class="fas fa-lightbulb text-intelligence-purple"></i>
+                        <h3 class="text-lg font-medium text-data-text">Parent Idea</h3>
                     </div>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                        {% if requirement.idea_evolution_phase.idea_evolution_cycle.status.name == 'Completed' %}
-                            bg-green-100 text-green-800
-                        {% else %}
-                            bg-blue-100 text-blue-800
-                        {% endif %}
-                    ">
-                        {{ requirement.idea_evolution_phase.idea_evolution_cycle.status.name }}
-                    </span>
+                    <a href="{{ url_for('ideas_show', id=requirement.idea_evolution_phase.idea_evolution_cycle.idea.id) }}" 
+                       class="text-intelligence-purple hover:text-intelligence-purple/80">
+                        View Idea <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
                 </div>
-                <p class="text-gray-600">{{ requirement.idea_evolution_phase.idea_evolution_cycle.idea.description }}</p>
+                <p class="text-data-text/80">{{ requirement.idea_evolution_phase.idea_evolution_cycle.idea.title }}</p>
             </div>
 
             <!-- Evolution Cycle Context -->
-            <div class="border border-gray-100 rounded-lg p-6">
+            <div class="border border-interface-divider rounded-lg p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-900">Evolution Cycle</h3>
-                            <p class="text-sm text-gray-500">{{ requirement.idea_evolution_phase.idea_evolution_cycle.evolution_cycle.name }}</p>
-                        </div>
+                        <i class="fas fa-sync-alt text-discovery-blue"></i>
+                        <h3 class="text-lg font-medium text-data-text">Evolution Cycle</h3>
                     </div>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                        {% if requirement.idea_evolution_phase.idea_evolution_cycle.evolution_cycle.status.name == 'Completed' %}
-                            bg-green-100 text-green-800
-                        {% else %}
-                            bg-blue-100 text-blue-800
-                        {% endif %}
-                    ">
-                        {{ requirement.idea_evolution_phase.idea_evolution_cycle.evolution_cycle.status.name }}
-                    </span>
+                    <a href="{{ url_for('evolutions_show', id=requirement.idea_evolution_phase.idea_evolution_cycle.evolution_cycle.id) }}" 
+                       class="text-discovery-blue hover:text-discovery-blue/80">
+                        View Cycle <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
                 </div>
-                <p class="text-gray-600">{{ requirement.idea_evolution_phase.idea_evolution_cycle.evolution_cycle.description }}</p>
+                <p class="text-data-text/80">{{ requirement.idea_evolution_phase.idea_evolution_cycle.evolution_cycle.name }}</p>
             </div>
 
             <!-- Phase Context -->
-            <div class="border border-gray-100 rounded-lg p-6">
+            <div class="border border-interface-divider rounded-lg p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                        </svg>
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-900">Phase</h3>
-                            <a href="{{ url_for('phases_show', id=requirement.idea_evolution_phase.phase.id) }}" 
-                               class="text-sm text-blue-600 hover:text-blue-800 hover:underline">
-                                {{ requirement.idea_evolution_phase.phase.name }}
-                            </a>
-                        </div>
+                        <i class="fas fa-tasks text-performance-green"></i>
+                        <h3 class="text-lg font-medium text-data-text">Phase</h3>
                     </div>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                        {% if requirement.idea_evolution_phase.status.name == 'Completed' %}
-                            bg-green-100 text-green-800
-                        {% else %}
-                            bg-blue-100 text-blue-800
-                        {% endif %}
-                    ">
-                        {{ requirement.idea_evolution_phase.status.name }}
-                    </span>
                 </div>
-                <p class="text-gray-600">{{ requirement.idea_evolution_phase.phase.description }}</p>
+                <p class="text-data-text/80">{{ requirement.idea_evolution_phase.phase.name }}</p>
+                {% if requirement.idea_evolution_phase.phase.description %}
+                <p class="text-data-text/60 mt-2">{{ requirement.idea_evolution_phase.phase.description }}</p>
+                {% endif %}
             </div>
         </div>
     </div>

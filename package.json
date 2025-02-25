@@ -23,9 +23,11 @@
   },
   "homepage": "https://github.com/pedroanisio/idea-management#readme",
   "dependencies": {
-    "@tailwindcss/forms": "^0.5.7",
-    "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1"
+    "@tailwindcss/forms": "^0.5.7"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.0.8"
   }
 }

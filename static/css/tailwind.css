@@ -1,0 +1,42 @@
+/*! tailwindcss v3.4.1 | MIT License | https://tailwindcss.com*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-intelligence-purple: 124 58 237;
+    --color-neural-blue: 59 130 246;
+    --color-discovery-blue: 96 165 250;
+    --color-performance-green: 16 185 129;
+    --color-innovation-orange: 245 158 11;
+    --color-alert-red: 239 68 68;
+    --color-insight-gray: 107 114 128;
+    --color-algorithm-gray: 243 244 246;
+    --color-cognitive-white: 255 255 255;
+    --color-data-text: 31 41 55;
+    --color-interface-divider: 229 231 235;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-intelligence-purple hover:bg-intelligence-purple/90 text-white focus:ring-intelligence-purple;
+  }
+
+  .btn-secondary {
+    @apply bg-algorithm-gray hover:bg-algorithm-gray/90 text-data-text border border-interface-divider focus:ring-neural-blue;
+  }
+
+  .card {
+    @apply bg-cognitive-white border border-interface-divider rounded-lg shadow-sm overflow-hidden;
+  }
+
+  .form-input {
+    @apply w-full rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20;
+  }
+}

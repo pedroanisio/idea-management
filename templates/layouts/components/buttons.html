@@ -47,3 +47,55 @@
     {{ text }}
 </button>
 {% endmacro %}
+
+{% macro action_button(text, action_type='primary', href='#', type='button', classes='', icon='', disabled=false) %}
+{% set button_styles = {
+    'primary': 'bg-intelligence-purple hover:bg-intelligence-purple/90 text-white',
+    'secondary': 'bg-algorithm-gray hover:bg-algorithm-gray/90 text-data-text border border-interface-divider',
+    'success': 'bg-performance-green hover:bg-performance-green/90 text-white',
+    'danger': 'bg-alert-red hover:bg-alert-red/90 text-white',
+    'innovation': 'bg-innovation-orange hover:bg-innovation-orange/90 text-white',
+    'experiment': 'bg-discovery-blue hover:bg-discovery-blue/90 text-white'
+} %}
+
+{% set icon_map = {
+    'create': 'fas fa-plus',
+    'edit': 'fas fa-pencil-alt',
+    'delete': 'fas fa-trash',
+    'save': 'fas fa-save',
+    'cancel': 'fas fa-times',
+    'back': 'fas fa-arrow-left',
+    'next': 'fas fa-arrow-right',
+    'search': 'fas fa-search',
+    'filter': 'fas fa-filter',
+    'settings': 'fas fa-cog',
+    'user': 'fas fa-user',
+    'brain': 'fas fa-brain',
+    'chart': 'fas fa-chart-bar',
+    'calendar': 'fas fa-calendar',
+    'clock': 'fas fa-clock',
+    'star': 'fas fa-star'
+} %}
+
+<button type="{{ type }}" 
+        class="font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors {{ button_styles[action_type] }} {{ classes }}"
+        {% if disabled %}disabled{% endif %}
+        {% if href != '#' %}onclick="window.location='{{ href }}'"{% endif %}>
+    {% if icon %}
+        {% if icon in icon_map %}
+            <i class="{{ icon_map[icon] }} mr-2"></i>
+        {% else %}
+            <i class="{{ icon }} mr-2"></i>
+        {% endif %}
+    {% endif %}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro link_button(text, href='#', classes='', icon='') %}
+<a href="{{ href }}" 
+   class="inline-flex items-center text-intelligence-purple hover:text-intelligence-purple/80 font-medium transition-colors {{ classes }}">
+    {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+    {{ text }}
+</a>
+{% endmacro %}

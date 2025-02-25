@@ -1,47 +1,41 @@
 {% extends 'layouts/base.html' %}
+{% from 'layouts/components/forms.html' import input_field, textarea_field, checkbox_field, form_group, form_row, form_actions, submit_button, cancel_button %}
 
-{% block title %}New Idea - Idea Management{% endblock %}
+{% block title %}New Idea{% endblock %}
 
 {% block content %}
-<div class="container mx-auto max-w-2xl">
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">New Idea</h1>
-        
-        <form method="POST" action="{{ url_for('ideas_create') }}" class="space-y-6">
-            <div>
-                <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-                <input type="text" name="title" id="title" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
+<div class="container mx-auto px-4">
+    <div class="max-w-3xl mx-auto">
+        <div class="flex items-center space-x-3 mb-6">
+            <svg class="w-8 h-8 text-intelligence-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            <h1 class="text-2xl font-bold text-data-text">New Idea</h1>
+        </div>
 
-            <div>
-                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea name="description" id="description" rows="4" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-            </div>
-
-            <div>
-                <label for="tech_stack" class="block text-sm font-medium text-gray-700">Tech Stacks</label>
-                <select name="tech_stack" id="tech_stack" multiple
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    {% for tech in tech_stacks %}
-                    <option value="{{ tech.id }}">{{ tech.name }}</option>
-                    {% endfor %}
-                </select>
-                <p class="mt-1 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple tech stacks</p>
-            </div>
-
-            <div class="flex justify-end space-x-4">
-                <a href="{{ url_for('ideas') }}" 
-                    class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded">
-                    Cancel
-                </a>
-                <button type="submit" 
-                    class="bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded">
-                    Create Idea
-                </button>
-            </div>
-        </form>
+        <div class="bg-cognitive-white shadow rounded-lg overflow-hidden">
+            <form method="POST" action="{{ url_for('ideas_create') }}" class="p-6">
+                {% call form_group() %}
+                    {{ input_field('title', 'Title', required=true, placeholder='Enter idea title') }}
+                    
+                    {{ textarea_field('description', 'Description', required=true, rows=5, 
+                        placeholder='Describe your idea in detail...') }}
+                    
+                    {% call form_row() %}
+                        {{ input_field('target_date', 'Target Date', type='date', required=true) }}
+                        {{ input_field('priority', 'Priority', type='number', required=true, 
+                            placeholder='Enter priority (1-5)') }}
+                    {% endcall %}
+                    
+                    {{ checkbox_field('is_experimental', 'This is an experimental idea') }}
+                    
+                    {% call form_actions() %}
+                        {{ cancel_button(url_for('ideas'), 'Cancel') }}
+                        {{ submit_button('Create Idea') }}
+                    {% endcall %}
+                {% endcall %}
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
