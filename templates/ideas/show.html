@@ -1,6 +1,5 @@
 {% extends 'layouts/base.html' %}
 {% from 'layouts/components/badges.html' import status_badge %}
-{% from 'layouts/components/buttons.html' import action_button %}
 
 {% block title %}{{ idea.title|default('Untitled Idea') }} - Idea Management{% endblock %}
 
@@ -23,17 +22,23 @@
             </div>
         </div>
         <div class="flex gap-3">
-            {{ action_button('Control Panel', url_for('idea_control_panel', id=idea.id), 
-                icon='fas fa-chart-bar', 
-                classes='bg-performance-green/10 text-performance-green hover:bg-performance-green/20') }}
+            <a href="{{ url_for('idea_control_panel', id=idea.id) }}" 
+               class="inline-flex items-center gap-2 bg-performance-green/10 text-performance-green hover:bg-performance-green/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-performance-green focus:ring-offset-2 transition-colors">
+                <i class="fas fa-chart-bar"></i>
+                Control Panel
+            </a>
             
-            {{ action_button('New Evolution', url_for('evolutions_create', idea_id=idea.id), 
-                icon='fas fa-plus',
-                classes='bg-discovery-blue/10 text-discovery-blue hover:bg-discovery-blue/20') }}
+            <a href="{{ url_for('evolutions_link', idea_id=idea.id) }}"
+               class="inline-flex items-center gap-2 bg-discovery-blue/10 text-discovery-blue hover:bg-discovery-blue/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-discovery-blue focus:ring-offset-2 transition-colors">
+                <i class="fas fa-plus"></i>
+                New Evolution
+            </a>
             
-            {{ action_button('Edit', url_for('ideas_edit', id=idea.id), 
-                icon='fas fa-edit',
-                classes='bg-intelligence-purple/10 text-intelligence-purple hover:bg-intelligence-purple/20') }}
+            <a href="{{ url_for('ideas_edit', id=idea.id) }}"
+               class="inline-flex items-center gap-2 bg-intelligence-purple/10 text-intelligence-purple hover:bg-intelligence-purple/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors">
+                <i class="fas fa-edit"></i>
+                Edit
+            </a>
             
             <form method="POST" action="{{ url_for('ideas_delete', id=idea.id) }}" class="inline">
                 <button type="submit" 
@@ -65,78 +70,110 @@
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-lg font-medium text-data-text">Evolution Cycles</h2>
                     <div class="flex gap-3">
-                        {{ action_button('New Evolution', url_for('evolutions_create', idea_id=idea.id), 
-                            icon='fas fa-plus',
-                            classes='bg-discovery-blue/10 text-discovery-blue hover:bg-discovery-blue/20') }}
+                        <a href="{{ url_for('evolutions_link', idea_id=idea.id) }}"
+                           class="inline-flex items-center gap-2 bg-discovery-blue/10 text-discovery-blue hover:bg-discovery-blue/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-discovery-blue focus:ring-offset-2 transition-colors">
+                            <i class="fas fa-plus"></i>
+                            New Evolution
+                        </a>
                     </div>
                 </div>
 
                 <div class="space-y-6">
                     {% for idea_cycle in idea.evolution_cycles %}
-                    <div class="bg-algorithm-gray rounded-lg p-4">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-start gap-3">
-                                <div class="mt-1">
-                                    <i class="fas fa-sync text-discovery-blue"></i>
+                    <div class="bg-algorithm-gray rounded-lg p-6">
+                        <!-- Evolution Cycle Header -->
+                        <div class="flex items-start justify-between mb-6">
+                            <div class="flex items-start gap-4">
+                                <div class="mt-1 p-2 bg-discovery-blue/10 rounded-lg">
+                                    <i class="fas fa-sync text-2xl text-discovery-blue"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-medium text-data-text">{{ idea_cycle.evolution_cycle.name }}</h3>
-                                    <p class="text-sm text-data-text/60">{{ idea_cycle.evolution_cycle.description }}</p>
-                                    {% if idea_cycle.status %}
-                                        {{ status_badge(idea_cycle.status.name, idea_cycle.status.name|lower) }}
-                                    {% endif %}
+                                    <h3 class="text-xl font-medium text-data-text">{{ idea_cycle.evolution_cycle.name }}</h3>
+                                    <p class="text-sm text-data-text/60 mt-1">{{ idea_cycle.evolution_cycle.description }}</p>
+                                    <div class="mt-2">
+                                        {% if idea_cycle.status %}
+                                            {{ status_badge(idea_cycle.status.name, idea_cycle.status.name|lower) }}
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Phases with Tech Stacks -->
-                        <div class="space-y-4">
+                        <div class="ml-4 space-y-6">
                             {% for idea_phase in idea_cycle.phases|sort(attribute='order') %}
-                            <div class="bg-cognitive-white rounded-md p-4">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fas fa-code-branch text-discovery-blue"></i>
-                                        <h4 class="font-medium text-data-text">{{ idea_phase.phase.name }}</h4>
-                                        {% if idea_phase.status %}
-                                            {{ status_badge(idea_phase.status.name, idea_phase.status.name|lower) }}
+                            <div class="relative">
+                                <!-- Phase connection line -->
+                                <div class="absolute -left-4 top-0 bottom-0 w-0.5 bg-discovery-blue/20"></div>
+                                
+                                <!-- Phase dot -->
+                                <div class="absolute -left-6 top-4 w-4 h-4 rounded-full border-2 border-discovery-blue bg-white"></div>
+                                
+                                <div class="bg-cognitive-white rounded-lg shadow-sm p-6">
+                                    <!-- Phase Header -->
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center gap-3">
+                                            <h4 class="font-medium text-lg text-data-text">{{ idea_phase.phase.name }}</h4>
+                                            {% if idea_phase.status %}
+                                                {{ status_badge(idea_phase.status.name, idea_phase.status.name|lower) }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tech Stacks -->
+                                    <div class="mt-4">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h5 class="text-sm font-medium text-data-text/60">Tech Stack</h5>
+                                            <button type="button"
+                                                   onclick="showTechStackModal({{ idea_phase.id }})"
+                                                   class="inline-flex items-center gap-2 bg-performance-green/10 text-performance-green hover:bg-performance-green/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-performance-green focus:ring-offset-2 transition-colors">
+                                                <i class="fas fa-plus"></i>
+                                                Add Tech Stack
+                                            </button>
+                                        </div>
+                                        
+                                        {% if idea_phase.tech_stacks %}
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {% for tech in idea_phase.tech_stacks %}
+                                            <div class="bg-algorithm-gray rounded-lg p-3 flex items-center justify-between group">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="p-1.5 bg-performance-green/10 rounded">
+                                                        <i class="fas fa-layer-group text-performance-green"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-medium text-data-text">{{ tech.name }}</span>
+                                                        {% if tech.type %}
+                                                        <p class="text-xs text-data-text/60">{{ tech.type.name }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <form method="POST" action="{{ url_for('phases_remove_techstack', phase_id=idea_phase.id, tech_stack_id=tech.id) }}" class="inline opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button type="submit" 
+                                                            class="p-1.5 text-data-text/40 hover:text-alert-red hover:bg-alert-red/10 rounded"
+                                                            title="Remove tech stack"
+                                                            onclick="return confirm('Are you sure you want to remove this tech stack?')">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <div class="text-center py-6 bg-algorithm-gray/30 rounded-lg">
+                                            <div class="text-3xl text-performance-green/20 mb-2">
+                                                <i class="fas fa-layer-group"></i>
+                                            </div>
+                                            <p class="text-data-text/40 mb-3">No tech stacks assigned to this phase</p>
+                                            <button type="button"
+                                                   onclick="showTechStackModal({{ idea_phase.id }})"
+                                                   class="inline-flex items-center gap-2 bg-performance-green/10 text-performance-green hover:bg-performance-green/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-performance-green focus:ring-offset-2 transition-colors">
+                                                <i class="fas fa-plus"></i>
+                                                Add Tech Stack
+                                            </button>
+                                        </div>
                                         {% endif %}
                                     </div>
                                 </div>
-                                
-                                <!-- Tech Stacks for this Phase -->
-                                {% if idea_phase.tech_stacks %}
-                                <div class="mt-3">
-                                    <h5 class="text-sm font-medium text-data-text/60 mb-2">Tech Stack</h5>
-                                    <div class="flex flex-wrap gap-2">
-                                        {% for tech in idea_phase.tech_stacks %}
-                                        <div class="bg-algorithm-gray rounded-md px-3 py-1.5 flex items-center gap-2">
-                                            <i class="fas fa-layer-group text-performance-green"></i>
-                                            <span class="text-sm text-data-text">{{ tech.name }}</span>
-                                            <form method="POST" action="{{ url_for('phases_remove_techstack', phase_id=idea_phase.id, tech_stack_id=tech.id) }}" class="inline">
-                                                <button type="submit" 
-                                                        class="text-data-text/40 hover:text-alert-red ml-2"
-                                                        title="Remove tech stack"
-                                                        onclick="return confirm('Are you sure you want to remove this tech stack?')">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                        {% endfor %}
-                                        
-                                        <!-- Add Tech Stack Button -->
-                                        {{ action_button('Add', url_for('phases_add_techstack', phase_id=idea_phase.id), 
-                                            icon='fas fa-plus',
-                                            classes='bg-performance-green/10 text-performance-green hover:bg-performance-green/20 text-sm py-1') }}
-                                    </div>
-                                </div>
-                                {% else %}
-                                <div class="mt-3 text-center py-4">
-                                    <p class="text-data-text/40 mb-3">No tech stacks assigned to this phase</p>
-                                    {{ action_button('Add Tech Stack', url_for('phases_add_techstack', phase_id=idea_phase.id), 
-                                        icon='fas fa-plus',
-                                        classes='bg-performance-green/10 text-performance-green hover:bg-performance-green/20') }}
-                                </div>
-                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -151,13 +188,60 @@
                     </div>
                     <h3 class="text-lg font-medium text-data-text mb-2">No Evolution Cycles</h3>
                     <p class="text-data-text/60 mb-4">Get started by creating your first evolution cycle.</p>
-                    {{ action_button('Create Evolution Cycle', url_for('evolutions_create', idea_id=idea.id), 
-                        icon='fas fa-plus',
-                        classes='bg-discovery-blue/10 text-discovery-blue hover:bg-discovery-blue/20') }}
+                    <a href="{{ url_for('evolutions_link', idea_id=idea.id) }}"
+                       class="inline-flex items-center gap-2 bg-discovery-blue/10 text-discovery-blue hover:bg-discovery-blue/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-discovery-blue focus:ring-offset-2 transition-colors">
+                        <i class="fas fa-plus"></i>
+                        Create Evolution Cycle
+                    </a>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTechStackModal(phaseId) {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-data-text">Add Tech Stack</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-data-text/40 hover:text-data-text">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form method="POST" action="/phases/${phaseId}/techstacks/add" class="space-y-4">
+                <div>
+                    <label for="tech_stack_id" class="block text-sm font-medium text-data-text/60 mb-1">Select Tech Stack</label>
+                    <select name="tech_stack_id" id="tech_stack_id" required
+                            class="w-full rounded-md border-interface-divider focus:border-discovery-blue focus:ring focus:ring-discovery-blue/20 bg-cognitive-white">
+                        <option value="">Select a tech stack...</option>
+                        {% for tech_stack in tech_stacks %}
+                        <option value="{{ tech_stack.id }}">{{ tech_stack.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" 
+                            onclick="this.closest('.fixed').remove()"
+                            class="inline-flex items-center gap-2 bg-algorithm-gray/80 text-data-text hover:bg-algorithm-gray font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-algorithm-gray focus:ring-offset-2 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 bg-performance-green text-white hover:bg-performance-green/90 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-performance-green focus:ring-offset-2 transition-colors">
+                        <i class="fas fa-plus"></i>
+                        Add Tech Stack
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+</script>
 {% endblock %}

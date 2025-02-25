@@ -162,7 +162,8 @@ def create_app():
     @app.route('/ideas/<int:id>')
     def ideas_show(id):
         idea = Idea.query.get_or_404(id)
-        return render_template('ideas/show.html', idea=idea)
+        tech_stacks = TechStack.query.all()
+        return render_template('ideas/show.html', idea=idea, tech_stacks=tech_stacks)
 
     @app.route('/ideas/<int:id>/edit', methods=['GET', 'POST'])
     def ideas_edit(id):
