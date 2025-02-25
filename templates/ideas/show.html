@@ -1,12 +1,12 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}{{ idea.name|default('Untitled Idea') }} - Idea Management{% endblock %}
+{% block title %}{{ idea.title|default('Untitled Idea') }} - Idea Management{% endblock %}
 
 {% block content %}
 <div class="container mx-auto max-w-4xl">
     <div class="bg-white rounded-lg shadow-md p-8">
         <div class="flex justify-between items-start mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">{{ idea.name|default('Untitled Idea') }}</h1>
+            <h1 class="text-3xl font-bold text-gray-800">{{ idea.title|default('Untitled Idea') }}</h1>
             <div class="flex space-x-4">
                 <a href="{{ url_for('evolutions_create', idea_id=idea.id) }}" 
                     class="bg-purple-100 text-purple-700 hover:bg-purple-200 px-4 py-2 rounded flex items-center">

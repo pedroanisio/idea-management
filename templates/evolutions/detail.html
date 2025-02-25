@@ -1,0 +1,102 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ cycle.evolution_cycle.name }} - {{ idea.title }} - Idea Management{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-8 text-sm">
+        <ol class="list-none p-0 inline-flex">
+            <li class="flex items-center">
+                <a href="{{ url_for('ideas') }}" class="text-blue-600 hover:text-blue-800">Ideas</a>
+                <svg class="w-3 h-3 mx-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </li>
+            <li class="flex items-center">
+                <a href="{{ url_for('idea_control_panel', id=idea.id) }}" class="text-blue-600 hover:text-blue-800">{{ idea.title }}</a>
+                <svg class="w-3 h-3 mx-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </li>
+            <li>
+                <span class="text-gray-500">{{ cycle.evolution_cycle.name }}</span>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ cycle.evolution_cycle.name }}</h1>
+                <p class="mt-2 text-gray-600">{{ cycle.evolution_cycle.description }}</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="px-3 py-1 rounded-full text-sm font-medium {{ cycle.status.name|lower == 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                    {{ cycle.status.name }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tech Stacks -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Tech Stack</h2>
+        <div class="flex flex-wrap gap-2">
+            {% for stack in cycle.tech_stacks %}
+            <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                {{ stack.name }}
+            </span>
+            {% else %}
+            <p class="text-gray-500">No tech stacks assigned</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Phases and Requirements -->
+    <div class="space-y-8">
+        {% for phase in phases %}
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">{{ phase.name }}</h2>
+                    <p class="mt-1 text-gray-600">{{ phase.description }}</p>
+                </div>
+                <span class="px-3 py-1 rounded-full text-sm font-medium {{ phase.status.name|lower == 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                    {{ phase.status.name }}
+                </span>
+            </div>
+
+            <!-- Requirements -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-gray-900">Requirements</h3>
+                {% if requirements_by_phase[phase.id] %}
+                <div class="divide-y">
+                    {% for req in requirements_by_phase[phase.id] %}
+                    <div class="py-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-base font-medium text-gray-900">{{ req.name }}</h4>
+                                <p class="mt-1 text-sm text-gray-600">{{ req.description }}</p>
+                                <div class="mt-2 flex items-center space-x-4">
+                                    <span class="text-sm text-gray-500">Type: {{ req.type.name }}</span>
+                                    <span class="text-sm text-gray-500">Priority: {{ req.priority.name }}</span>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full {{ req.status.name|lower == 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                {{ req.status.name }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500">No requirements for this phase</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
