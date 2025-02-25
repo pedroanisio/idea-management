@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_migrate import Migrate
 from datetime import datetime
 import os
@@ -47,48 +47,46 @@ def create_app():
 
     @app.route('/')
     def index():
-        # Get counts for dashboard
-        ideas_count = Idea.query.count()
-        requirements_count = Requirement.query.count()
-        evolutions_count = EvolutionCycle.query.count()
-        techstacks_count = TechStack.query.count()
-        phases_count = Phase.query.count()
-        technologies_count = Technology.query.count()
-
-        # Get recent activities (last 5 items of each type)
-        recent_ideas = Idea.query.order_by(Idea.created_at.desc()).limit(5).all()
-        recent_requirements = Requirement.query.order_by(Requirement.created_at.desc()).limit(5).all()
-
-        # Combine and sort activities
+        # Get all models
+        ideas = Idea.query.all()
+        evolution_cycles = EvolutionCycle.query.all()
+        tech_stacks = TechStack.query.all()
+        requirements = Requirement.query.all()
+        technologies = Technology.query.all()
+        
+        # Get recent activities (last 5 activities)
         activities = []
-
-        # Add ideas
-        for idea in recent_ideas:
+        
+        # Ideas activity
+        for idea in sorted(ideas, key=lambda x: x.created_at, reverse=True)[:5]:
             activities.append({
                 'type': 'idea',
-                'description': f'New idea created: {idea.name}',
-                'created_at': idea.created_at or datetime.utcnow()
+                'description': f'New idea created: {idea.title}',
+                'created_at': idea.created_at,
+                'sort_date': idea.created_at
             })
-
-        # Add requirements
-        for req in recent_requirements:
+            
+        # Requirements activity
+        for req in sorted(requirements, key=lambda x: x.created_at, reverse=True)[:5]:
             activities.append({
                 'type': 'requirement',
                 'description': f'New requirement added: {req.name}',
-                'created_at': req.created_at or datetime.utcnow()
+                'created_at': req.created_at,
+                'sort_date': req.created_at
             })
-
-        # Sort activities by creation date
-        activities.sort(key=lambda x: x['created_at'], reverse=True)
-        activities = activities[:5]  # Get only the 5 most recent activities
-
+            
+        # Sort all activities by created_at
+        activities = sorted(activities, key=lambda x: x['sort_date'], reverse=True)[:5]
+        
         return render_template('index.html',
-                             ideas_count=ideas_count,
-                             requirements_count=requirements_count,
-                             evolutions_count=evolutions_count,
-                             techstacks_count=techstacks_count,
-                             phases_count=phases_count,
-                             technologies_count=technologies_count,
+                             ideas=ideas,
+                             evolution_cycles=evolution_cycles,
+                             tech_stacks=tech_stacks,
+                             ideas_count=len(ideas),
+                             evolutions_count=len(evolution_cycles),
+                             techstacks_count=len(tech_stacks),
+                             requirements_count=len(requirements),
+                             technologies_count=len(technologies),
                              activities=activities)
 
     @app.route('/ideas')
@@ -107,27 +105,44 @@ def create_app():
                 db.session.commit()
 
             # Create new idea
-            name = request.form.get('name')
+            title = request.form.get('title')
             description = request.form.get('description')
 
-            if not name or not description:
-                flash('Name and description are required.', 'danger')
+            if not title or not description:
+                flash('Title and description are required.', 'danger')
                 return redirect(url_for('ideas_create'))
 
             idea = Idea(
-                name=name,
+                title=title,
                 description=description,
                 status=default_status
             )
 
-            # Handle tech stacks
-            tech_stack_ids = request.form.getlist('tech_stack')
-            if tech_stack_ids:
-                tech_stacks = TechStack.query.filter(TechStack.id.in_(tech_stack_ids)).all()
-                idea.tech_stacks.extend(tech_stacks)
-
             try:
                 db.session.add(idea)
+                
+                # Create initial evolution cycle
+                evolution_cycle = EvolutionCycle(
+                    name="Initial Cycle",
+                    description="Initial evolution cycle for the idea",
+                    status=default_status
+                )
+                db.session.add(evolution_cycle)
+                
+                # Create IdeaEvolutionCycle association
+                idea_evolution_cycle = IdeaEvolutionCycle(
+                    idea=idea,
+                    evolution_cycle=evolution_cycle,
+                    status=default_status
+                )
+                db.session.add(idea_evolution_cycle)
+
+                # Handle tech stacks
+                tech_stack_ids = request.form.getlist('tech_stack')
+                if tech_stack_ids:
+                    tech_stacks = TechStack.query.filter(TechStack.id.in_(tech_stack_ids)).all()
+                    idea_evolution_cycle.tech_stacks.extend(tech_stacks)
+
                 db.session.commit()
                 flash('Idea created successfully!', 'success')
                 return redirect(url_for('ideas'))
@@ -149,7 +164,7 @@ def create_app():
     def ideas_edit(id):
         idea = Idea.query.get_or_404(id)
         if request.method == 'POST':
-            idea.name = request.form['name']
+            idea.title = request.form['title']
             idea.description = request.form['description']
             # Update tech stack
             tech_stack_ids = request.form.getlist('tech_stack')
@@ -462,23 +477,29 @@ def create_app():
         
         return redirect(url_for('evolutions_show', id=idea_cycle.evolution_cycle.id))
 
-    # Requirements routes
-    @app.route('/requirements')
-    def requirements():
-        requirements = Requirement.query.all()
-        return render_template('requirements/index.html', requirements=requirements)
-
-    @app.route('/requirements/create', methods=['GET', 'POST'])
-    def requirements_create():
+    @app.route('/evolutions/<int:id>/phases/create', methods=['GET', 'POST'])
+    def evolution_phases_create(id):
+        evolution_cycle = EvolutionCycle.query.get_or_404(id)
+        
         if request.method == 'POST':
-            # Get required IDs
-            idea_evolution_phase_id = request.form.get('idea_evolution_phase_id')
-            type_id = request.form.get('type_id')
-            priority_id = request.form.get('priority_id')
+            name = request.form.get('name')
+            description = request.form.get('description')
+            order = request.form.get('order')
 
-            if not idea_evolution_phase_id:
-                flash('Please select a phase from an evolution cycle.', 'danger')
-                return redirect(url_for('requirements_create'))
+            print(f"Creating phase with name={name}, description={description}, order={order}")  # Debug log
+
+            # Validate order is a positive integer
+            try:
+                order = int(order)
+                if order <= 0:
+                    raise ValueError("Order must be positive")
+            except (TypeError, ValueError):
+                flash('Order must be a positive number.', 'danger')
+                return redirect(url_for('evolution_phases_create', id=id))
+
+            if not name or not description:
+                flash('Name and description are required.', 'danger')
+                return redirect(url_for('evolution_phases_create', id=id))
 
             # Get default status
             default_status = Status.query.filter_by(name='New').first()
@@ -487,55 +508,174 @@ def create_app():
                 db.session.add(default_status)
                 db.session.commit()
 
-            # Create new requirement
-            requirement = Requirement(
-                name=request.form.get('name'),
-                description=request.form.get('description'),
-                idea_evolution_phase_id=idea_evolution_phase_id,
-                status=default_status
-            )
+            try:
+                # Create the phase
+                phase = Phase(
+                    name=name,
+                    description=description,
+                    evolution_cycle_id=id,
+                    order=order,
+                    status_id=default_status.id  # Use status_id instead of status object
+                )
+                print(f"Created phase object: {phase}")  # Debug log
+                db.session.add(phase)
+                db.session.flush()  # Flush to get the phase ID
+                
+                # Add this phase to all existing idea evolution cycles
+                idea_cycles = IdeaEvolutionCycle.query.filter_by(evolution_cycle_id=id).all()
+                print(f"Found {len(idea_cycles)} idea cycles")  # Debug log
+                
+                for idea_cycle in idea_cycles:
+                    idea_phase = IdeaEvolutionPhase(
+                        idea_evolution_cycle_id=idea_cycle.id,  # Use IDs instead of objects
+                        phase_id=phase.id,
+                        order=order,
+                        status_id=default_status.id
+                    )
+                    print(f"Created idea phase: {idea_phase}")  # Debug log
+                    db.session.add(idea_phase)
 
-            # Set type if provided
-            if type_id:
-                requirement.type = RequirementType.query.get(type_id)
-            
-            # Set priority if provided
-            if priority_id:
-                requirement.priority = RequirementPriority.query.get(priority_id)
+                db.session.commit()
+                flash('Phase created successfully!', 'success')
+                return redirect(url_for('evolutions_show', id=id))
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error creating phase: {str(e)}")  # Debug log
+                flash('Error creating phase. Please try again.', 'danger')
+                return redirect(url_for('evolution_phases_create', id=id))
+
+        return render_template('evolutions/phases/create.html', evolution_cycle=evolution_cycle)
+
+    @app.route('/evolutions/<int:evolution_id>/phases/<int:phase_id>/edit', methods=['GET', 'POST'])
+    def evolution_phases_edit(evolution_id, phase_id):
+        evolution_cycle = EvolutionCycle.query.get_or_404(evolution_id)
+        phase = Phase.query.get_or_404(phase_id)
+        
+        if request.method == 'POST':
+            name = request.form.get('name')
+            description = request.form.get('description')
+            order = request.form.get('order', type=int)
+
+            if not name or not description or not order:
+                flash('Name, description, and order are required.', 'danger')
+                return redirect(url_for('evolution_phases_edit', evolution_id=evolution_id, phase_id=phase_id))
 
             try:
+                phase.name = name
+                phase.description = description
+                phase.order = order
+                db.session.commit()
+                flash('Phase updated successfully!', 'success')
+                return redirect(url_for('evolutions_show', id=evolution_id))
+            except Exception as e:
+                db.session.rollback()
+                flash('Error updating phase. Please try again.', 'danger')
+                return redirect(url_for('evolution_phases_edit', evolution_id=evolution_id, phase_id=phase_id))
+
+        return render_template('evolutions/phases/edit.html', 
+                             evolution_cycle=evolution_cycle,
+                             phase=phase)
+
+    @app.route('/evolutions/<int:evolution_id>/phases/<int:phase_id>/delete', methods=['POST'])
+    def evolution_phases_delete(evolution_id, phase_id):
+        evolution_cycle = EvolutionCycle.query.get_or_404(evolution_id)
+        phase = Phase.query.get_or_404(phase_id)
+        
+        try:
+            # Delete all associated IdeaEvolutionPhases and their requirements first
+            idea_phases = IdeaEvolutionPhase.query.filter_by(phase_id=phase_id).all()
+            for idea_phase in idea_phases:
+                # Delete associated requirements
+                Requirement.query.filter_by(idea_evolution_phase_id=idea_phase.id).delete()
+                db.session.delete(idea_phase)
+            
+            db.session.delete(phase)
+            db.session.commit()
+            flash('Phase and all associated data deleted successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error deleting phase. Please try again.', 'danger')
+            
+        return redirect(url_for('evolutions_show', id=evolution_id))
+
+    # Requirements routes
+    @app.route('/requirements')
+    def requirements():
+        requirements = Requirement.query.all()
+        return render_template('requirements/index.html', requirements=requirements)
+
+    @app.route('/requirements/create', methods=['GET', 'POST'])
+    def requirements_create():
+        idea_evolution_phase_id = request.args.get('idea_evolution_phase_id', type=int)
+        
+        if not idea_evolution_phase_id:
+            flash('No phase specified.', 'danger')
+            return redirect(url_for('index'))
+            
+        # Get the phase details
+        phase_details = db.session.query(
+            IdeaEvolutionPhase,
+            Phase.name.label('phase_name'),
+            Idea.title.label('idea_name'),  
+            EvolutionCycle.name.label('evolution_name')
+        ).join(
+            Phase, IdeaEvolutionPhase.phase_id == Phase.id
+        ).join(
+            IdeaEvolutionCycle, IdeaEvolutionPhase.idea_evolution_cycle_id == IdeaEvolutionCycle.id
+        ).join(
+            Idea, IdeaEvolutionCycle.idea_id == Idea.id
+        ).join(
+            EvolutionCycle, IdeaEvolutionCycle.evolution_cycle_id == EvolutionCycle.id
+        ).filter(
+            IdeaEvolutionPhase.id == idea_evolution_phase_id
+        ).first()
+        
+        if not phase_details:
+            flash('Phase not found.', 'danger')
+            return redirect(url_for('index'))
+
+        if request.method == 'POST':
+            name = request.form.get('name')
+            description = request.form.get('description')
+            type_id = request.form.get('type_id', type=int)
+            priority_id = request.form.get('priority_id', type=int)
+
+            if not all([name, description, type_id, priority_id]):
+                flash('All fields are required.', 'danger')
+                return redirect(url_for('requirements_create', idea_evolution_phase_id=idea_evolution_phase_id))
+
+            try:
+                # Get default status
+                default_status = Status.query.filter_by(name='New').first()
+                if not default_status:
+                    default_status = Status(name='New')
+                    db.session.add(default_status)
+                    db.session.commit()
+
+                requirement = Requirement(
+                    name=name,
+                    description=description,
+                    type_id=type_id,
+                    priority_id=priority_id,
+                    status=default_status,
+                    idea_evolution_phase_id=idea_evolution_phase_id
+                )
                 db.session.add(requirement)
                 db.session.commit()
                 flash('Requirement created successfully!', 'success')
-                
-                # Redirect to the phase view
-                idea_phase = IdeaEvolutionPhase.query.get(idea_evolution_phase_id)
-                return redirect(url_for('phases_show', id=idea_phase.phase.id))
+                return redirect(url_for('ideas_show', id=phase_details.IdeaEvolutionPhase.idea_evolution_cycle.idea_id))
             except Exception as e:
                 db.session.rollback()
                 flash('Error creating requirement. Please try again.', 'danger')
-                return redirect(url_for('requirements_create'))
+                return redirect(url_for('requirements_create', idea_evolution_phase_id=idea_evolution_phase_id))
 
-        # GET request - show create form
-        # Get all available phases from all evolution cycles
-        idea_evolution_phases = IdeaEvolutionPhase.query\
-            .select_from(IdeaEvolutionPhase)\
-            .join(IdeaEvolutionPhase.idea_evolution_cycle)\
-            .join(IdeaEvolutionCycle.idea)\
-            .join(IdeaEvolutionPhase.phase)\
-            .add_columns(
-                Idea.name.label('idea_name'),
-                EvolutionCycle.name.label('cycle_name'),
-                Phase.name.label('phase_name')
-            ).all()
-
-        types = RequirementType.query.all()
-        priorities = RequirementPriority.query.all()
+        requirement_types = RequirementType.query.all()
+        requirement_priorities = RequirementPriority.query.all()
         
         return render_template('requirements/create.html',
-                             idea_evolution_phases=idea_evolution_phases,
-                             types=types,
-                             priorities=priorities)
+                             phase_details=phase_details,
+                             requirement_types=requirement_types,
+                             requirement_priorities=requirement_priorities)
 
     @app.route('/requirements/<int:id>')
     def requirements_show(id):
@@ -578,11 +718,10 @@ def create_app():
             .join(IdeaEvolutionPhase.idea_evolution_cycle)\
             .join(IdeaEvolutionCycle.idea)\
             .join(IdeaEvolutionPhase.phase)\
-            .add_columns(
-                Idea.name.label('idea_name'),
-                EvolutionCycle.name.label('cycle_name'),
-                Phase.name.label('phase_name')
-            ).all()
+            .join(Phase.evolution_cycle)\
+            .filter(IdeaEvolutionPhase.id == requirement.idea_evolution_phase_id)\
+            .order_by(EvolutionCycle.name, Phase.order)\
+            .all()
 
         types = RequirementType.query.all()
         priorities = RequirementPriority.query.all()
@@ -600,114 +739,7 @@ def create_app():
         db.session.delete(requirement)
         db.session.commit()
         flash('Requirement deleted successfully!', 'success')
-        return redirect(url_for('phases_show', id=idea_phase.phase.id))
-
-    # Phases routes
-    @app.route('/phases')
-    def phases():
-        phases = Phase.query.all()
-        return render_template('phases/index.html', phases=phases)
-
-    @app.route('/phases/create', methods=['GET', 'POST'])
-    def phases_create():
-        if request.method == 'POST':
-            name = request.form.get('name')
-            description = request.form.get('description')
-
-            if not name or not description:
-                flash('Name and description are required.', 'danger')
-                return redirect(url_for('phases_create'))
-
-            # Get default status
-            default_status = Status.query.filter_by(name='New').first()
-            if not default_status:
-                default_status = Status(name='New')
-                db.session.add(default_status)
-                db.session.commit()
-
-            try:
-                phase = Phase(
-                    name=name,
-                    description=description,
-                    status=default_status
-                )
-                db.session.add(phase)
-                db.session.commit()
-                flash('Phase created successfully!', 'success')
-                return redirect(url_for('phases'))
-            except Exception as e:
-                db.session.rollback()
-                flash('Error creating phase. Please try again.', 'danger')
-                return redirect(url_for('phases_create'))
-
-        return render_template('phases/create.html')
-
-    @app.route('/phases/<int:id>')
-    def phases_show(id):
-        phase = Phase.query.get_or_404(id)
-        
-        # Get all evolution cycles using this phase
-        idea_evolution_phases = IdeaEvolutionPhase.query\
-            .select_from(IdeaEvolutionPhase)\
-            .join(IdeaEvolutionCycle, IdeaEvolutionPhase.idea_evolution_cycle_id == IdeaEvolutionCycle.id)\
-            .join(Idea, IdeaEvolutionCycle.idea_id == Idea.id)\
-            .join(EvolutionCycle, IdeaEvolutionCycle.evolution_cycle_id == EvolutionCycle.id)\
-            .join(Phase, IdeaEvolutionPhase.phase_id == Phase.id)\
-            .filter(IdeaEvolutionPhase.phase_id == id)\
-            .add_columns(
-                Idea.id.label('idea_id'),
-                Idea.name.label('idea_name'),
-                EvolutionCycle.name.label('cycle_name'),
-                Phase.name.label('phase_name'),
-                IdeaEvolutionPhase.order.label('phase_order'),
-                IdeaEvolutionPhase.status_id.label('status_id')
-            )\
-            .order_by(Idea.name, EvolutionCycle.name, IdeaEvolutionPhase.order)\
-            .all()
-
-        return render_template('phases/show.html', 
-                             phase=phase,
-                             idea_evolution_phases=idea_evolution_phases)
-
-    @app.route('/phases/<int:id>/edit', methods=['GET', 'POST'])
-    def phases_edit(id):
-        phase = Phase.query.get_or_404(id)
-        if request.method == 'POST':
-            name = request.form.get('name')
-            description = request.form.get('description')
-
-            if not name or not description:
-                flash('Name and description are required.', 'danger')
-                return redirect(url_for('phases_edit', id=id))
-
-            try:
-                phase.name = name
-                phase.description = description
-                db.session.commit()
-                flash('Phase updated successfully!', 'success')
-                return redirect(url_for('phases_show', id=phase.id))
-            except Exception as e:
-                db.session.rollback()
-                flash('Error updating phase. Please try again.', 'danger')
-                return redirect(url_for('phases_edit', id=id))
-
-        return render_template('phases/edit.html', phase=phase)
-
-    @app.route('/phases/<int:id>/delete', methods=['POST'])
-    def phases_delete(id):
-        phase = Phase.query.get_or_404(id)
-        
-        # Delete all associated IdeaEvolutionPhases and their requirements first
-        idea_phases = IdeaEvolutionPhase.query.filter_by(phase_id=id).all()
-        for idea_phase in idea_phases:
-            # Delete associated requirements
-            Requirement.query.filter_by(idea_evolution_phase_id=idea_phase.id).delete()
-            db.session.delete(idea_phase)
-        
-        db.session.delete(phase)
-        db.session.commit()
-        flash('Phase and all associated data deleted successfully!', 'success')
-        return redirect(url_for('phases'))
+        return redirect(url_for('evolutions_show', id=idea_phase.idea_evolution_cycle.evolution_cycle.id))
 
     # Technology routes
     @app.route('/technologies')
@@ -857,13 +889,8 @@ def create_app():
     # Tech Stack routes
     @app.route('/techstacks')
     def techstacks():
-        techstacks = TechStack.query.all()
-        return render_template('techstacks/index.html', techstacks=techstacks)
-
-    @app.route('/techstacks/<int:id>')
-    def techstacks_show(id):
-        stack = TechStack.query.get_or_404(id)
-        return render_template('techstacks/show.html', stack=stack, now=datetime.now().date())
+        tech_stacks = TechStack.query.all()
+        return render_template('techstacks/index.html', tech_stacks=tech_stacks)
 
     @app.route('/techstacks/create', methods=['GET', 'POST'])
     def techstacks_create():
@@ -876,39 +903,29 @@ def create_app():
                 flash('Name and type are required.', 'danger')
                 return redirect(url_for('techstacks_create'))
 
-            try:
-                # Create tech stack
-                tech_stack = TechStack(
-                    name=name,
-                    description=description,
-                    type_id=type_id
-                )
-                db.session.add(tech_stack)
-                
-                # Add technology versions
-                selected_versions = request.form.getlist('technology_versions[]')
-                for version_id in selected_versions:
-                    if version_id:
-                        version_aggregate = TechnologyVersionAggregate.query.get(version_id)
-                        if version_aggregate:
-                            tech_stack.technology_versions.append(version_aggregate)
+            tech_stack = TechStack(
+                name=name,
+                description=description,
+                type_id=type_id
+            )
 
+            try:
+                db.session.add(tech_stack)
                 db.session.commit()
                 flash('Tech Stack created successfully!', 'success')
                 return redirect(url_for('techstacks'))
-
             except Exception as e:
                 db.session.rollback()
-                flash('Error creating tech stack. Please try again.', 'danger')
+                flash('Error creating tech stack.', 'danger')
                 return redirect(url_for('techstacks_create'))
 
-        # GET request - show create form
-        types = TechnologyType.query.order_by(TechnologyType.name).all()
-        # Get all available technology versions
-        technologies = Technology.query.all()
-        return render_template('techstacks/create.html', 
-                             types=types,
-                             technologies=technologies)
+        technology_types = TechnologyType.query.all()
+        return render_template('techstacks/create.html', technology_types=technology_types)
+
+    @app.route('/techstacks/<int:id>')
+    def techstacks_show(id):
+        stack = TechStack.query.get_or_404(id)
+        return render_template('techstacks/show.html', stack=stack, now=datetime.now().date())
 
     @app.route('/techstacks/<int:id>/edit', methods=['GET', 'POST'])
     def techstacks_edit(id):
@@ -948,12 +965,11 @@ def create_app():
                 flash('Error updating tech stack. Please try again.', 'danger')
                 return redirect(url_for('techstacks_edit', id=id))
 
-        # GET request - show edit form
-        types = TechnologyType.query.order_by(TechnologyType.name).all()
+        technology_types = TechnologyType.query.all()
         technologies = Technology.query.all()
         return render_template('techstacks/edit.html', 
                              tech_stack=tech_stack,
-                             types=types,
+                             technology_types=technology_types,
                              technologies=technologies)
 
     @app.route('/techstacks/<int:id>/delete', methods=['POST'])
@@ -1050,8 +1066,9 @@ def create_app():
             .join(IdeaEvolutionPhase.idea_evolution_cycle)\
             .join(IdeaEvolutionCycle.idea)\
             .join(IdeaEvolutionPhase.phase)\
+            .join(Phase.evolution_cycle)\
             .filter(IdeaEvolutionCycle.idea_id == id)\
-            .order_by(EvolutionCycle.name, IdeaEvolutionPhase.order)\
+            .order_by(EvolutionCycle.name, Phase.order)\
             .all()
 
         # Calculate statistics for this idea
@@ -1094,6 +1111,163 @@ def create_app():
                              requirement_types=requirement_types,
                              available_phases=available_phases,
                              stats=stats)
+
+    @app.route('/ideas/<int:id>/tech-stacks/manage', methods=['POST'])
+    def tech_stacks_manage(id):
+        idea = Idea.query.get_or_404(id)
+        tech_stack_ids = request.form.getlist('tech_stack')
+        
+        try:
+            # Get the first evolution cycle (assuming it exists)
+            if idea.evolution_cycles:
+                cycle = idea.evolution_cycles[0]
+                # Update tech stacks
+                cycle.tech_stacks = TechStack.query.filter(TechStack.id.in_(tech_stack_ids)).all() if tech_stack_ids else []
+                db.session.commit()
+                flash('Tech stacks updated successfully!', 'success')
+            else:
+                flash('No evolution cycle found for this idea.', 'warning')
+            
+            return redirect(url_for('idea_control_panel', id=id))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating tech stacks. Please try again.', 'danger')
+            return redirect(url_for('idea_control_panel', id=id))
+
+    @app.route('/ideas/<int:idea_id>/evolution-cycles/<int:cycle_id>')
+    def evolution_cycle_detail(idea_id, cycle_id):
+        idea = Idea.query.get_or_404(idea_id)
+        idea_evolution_cycle = IdeaEvolutionCycle.query\
+            .filter_by(idea_id=idea_id, id=cycle_id)\
+            .first_or_404()
+        
+        # Get all phases for this evolution cycle
+        phases = Phase.query\
+            .join(IdeaEvolutionPhase)\
+            .filter(IdeaEvolutionPhase.idea_evolution_cycle_id == cycle_id)\
+            .order_by(Phase.order)\
+            .all()
+        
+        # Get all requirements grouped by phase
+        requirements_by_phase = {}
+        for phase in phases:
+            requirements = Requirement.query\
+                .join(IdeaEvolutionPhase)\
+                .filter(
+                    IdeaEvolutionPhase.phase_id == phase.id,
+                    IdeaEvolutionPhase.idea_evolution_cycle_id == cycle_id
+                )\
+                .all()
+            requirements_by_phase[phase.id] = requirements
+        
+        return render_template('evolutions/detail.html',
+                             idea=idea,
+                             cycle=idea_evolution_cycle,
+                             phases=phases,
+                             requirements_by_phase=requirements_by_phase)
+
+    @app.route('/ideas/<int:idea_id>/evolution-cycles/<int:cycle_id>/edit', methods=['GET', 'POST'])
+    def evolution_cycle_edit(idea_id, cycle_id):
+        idea = Idea.query.get_or_404(idea_id)
+        idea_evolution_cycle = IdeaEvolutionCycle.query\
+            .filter_by(idea_id=idea_id, id=cycle_id)\
+            .first_or_404()
+        
+        if request.method == 'POST':
+            try:
+                # Update evolution cycle
+                idea_evolution_cycle.evolution_cycle.name = request.form.get('name')
+                idea_evolution_cycle.evolution_cycle.description = request.form.get('description')
+                
+                # Update status if provided
+                status_id = request.form.get('status')
+                if status_id:
+                    idea_evolution_cycle.status_id = status_id
+                
+                # Update tech stacks
+                tech_stack_ids = request.form.getlist('tech_stack')
+                if tech_stack_ids:
+                    tech_stacks = TechStack.query.filter(TechStack.id.in_(tech_stack_ids)).all()
+                    idea_evolution_cycle.tech_stacks = tech_stacks
+                
+                db.session.commit()
+                flash('Evolution cycle updated successfully!', 'success')
+                return redirect(url_for('evolution_cycle_detail', idea_id=idea_id, cycle_id=cycle_id))
+            except Exception as e:
+                db.session.rollback()
+                flash('Error updating evolution cycle. Please try again.', 'danger')
+        
+        # Get all available tech stacks and statuses for the form
+        tech_stacks = TechStack.query.all()
+        statuses = Status.query.all()
+        
+        return render_template('evolutions/edit.html',
+                             idea=idea,
+                             cycle=idea_evolution_cycle,
+                             tech_stacks=tech_stacks,
+                             statuses=statuses)
+
+    @app.route('/ideas/<int:idea_id>/evolution-cycles/<int:cycle_id>/delete', methods=['POST'])
+    def evolution_cycle_delete(idea_id, cycle_id):
+        idea = Idea.query.get_or_404(idea_id)
+        idea_evolution_cycle = IdeaEvolutionCycle.query\
+            .filter_by(idea_id=idea_id, id=cycle_id)\
+            .first_or_404()
+        
+        try:
+            # Delete associated phases and requirements first
+            for phase in idea_evolution_cycle.phases:
+                # Delete requirements for this phase
+                Requirement.query.filter_by(phase_id=phase.id).delete()
+                db.session.delete(phase)
+            
+            # Delete the evolution cycle
+            evolution_cycle = idea_evolution_cycle.evolution_cycle
+            db.session.delete(idea_evolution_cycle)
+            db.session.delete(evolution_cycle)
+            
+            db.session.commit()
+            flash('Evolution cycle deleted successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error deleting evolution cycle. Please try again.', 'danger')
+        
+        return redirect(url_for('idea_control_panel', id=idea_id))
+
+    @app.route('/ideas/<int:id>/tech-stacks/update', methods=['POST'])
+    def idea_tech_stacks_update(id):
+        idea = Idea.query.get_or_404(id)
+        cycle_id = request.form.get('cycle_id')
+        
+        if not cycle_id:
+            flash('Evolution cycle is required.', 'danger')
+            return redirect(url_for('idea_control_panel', id=id))
+            
+        cycle = IdeaEvolutionCycle.query.get_or_404(cycle_id)
+        tech_stack_ids = request.form.getlist('tech_stacks[]')
+        
+        try:
+            # Update tech stacks for the cycle
+            cycle.tech_stacks = []
+            for stack_id in tech_stack_ids:
+                stack = TechStack.query.get(stack_id)
+                if stack:
+                    cycle.tech_stacks.append(stack)
+            
+            db.session.commit()
+            flash('Tech stacks updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating tech stacks.', 'danger')
+            
+        return redirect(url_for('idea_control_panel', id=id))
+
+    @app.route('/ideas/<int:id>/tech-stacks')
+    def idea_tech_stacks(id):
+        cycle = IdeaEvolutionCycle.query.get_or_404(id)
+        return jsonify({
+            'tech_stacks': [stack.id for stack in cycle.tech_stacks]
+        })
 
     # Error handlers
     @app.errorhandler(404)

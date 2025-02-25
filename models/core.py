@@ -3,8 +3,9 @@ from extensions import db
 
 # Association tables
 tech_stack_association = db.Table('tech_stack_association',
-    db.Column('tech_stack_id', db.Integer, db.ForeignKey('tech_stacks.id'), primary_key=True),
-    db.Column('idea_evolution_cycle_id', db.Integer, db.ForeignKey('idea_evolution_cycles.id'), nullable=False)
+    db.Column('tech_stack_id', db.Integer, db.ForeignKey('tech_stacks.id')),
+    db.Column('idea_evolution_cycle_id', db.Integer, db.ForeignKey('idea_evolution_cycles.id')),
+    db.PrimaryKeyConstraint('tech_stack_id', 'idea_evolution_cycle_id')
 )
 
 tech_stack_technology_version = db.Table('tech_stack_technology_version',
@@ -122,6 +123,7 @@ class IdeaEvolutionPhase(db.Model):
     idea_evolution_cycle_id = db.Column(db.Integer, db.ForeignKey('idea_evolution_cycles.id'), nullable=False)
     phase_id = db.Column(db.Integer, db.ForeignKey('phases.id'), nullable=False)
     status_id = db.Column(db.Integer, db.ForeignKey('statuses.id'))
+    order = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -198,9 +200,11 @@ class TechStack(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    technology_type = db.relationship('TechnologyType')
+    type = db.relationship('TechnologyType', backref=db.backref('tech_stacks', lazy=True))
     idea_evolution_cycles = db.relationship('IdeaEvolutionCycle', secondary=tech_stack_association,
                                           back_populates='tech_stacks')
+    technologies = db.relationship('Technology', secondary=tech_stack_technology_association,
+                                 backref=db.backref('tech_stacks', lazy=True))
     technology_versions = db.relationship('TechnologyVersionAggregate', secondary=tech_stack_technology_version,
                                         backref='tech_stacks')
 

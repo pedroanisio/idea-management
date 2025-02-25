@@ -29,13 +29,6 @@
         </div>
         
         <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-2">Phases</h2>
-            <p class="text-4xl font-bold text-indigo-600">{{ phases_count|default(0) }}</p>
-            <p class="mt-2 text-gray-600">Total phases</p>
-            <a href="{{ url_for('phases') }}" class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">View All</a>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-md">
             <h2 class="text-xl font-semibold mb-2">Tech Stacks</h2>
             <p class="text-4xl font-bold text-yellow-600">{{ techstacks_count|default(0) }}</p>
             <p class="mt-2 text-gray-600">Total tech stacks</p>
@@ -82,10 +75,10 @@
                     <span class="text-lg">➕</span>
                     <span class="ml-2">New Idea</span>
                 </a>
-                <a href="{{ url_for('requirements_create') }}" 
+                <a href="{{ url_for('evolution_phases_create', id=evolution_cycles[0].id) if evolution_cycles else '#' }}" 
                     class="flex items-center justify-center p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100">
                     <span class="text-lg">📋</span>
-                    <span class="ml-2">New Requirement</span>
+                    <span class="ml-2">New Phase</span>
                 </a>
                 <a href="{{ url_for('techstacks_create') }}" 
                     class="flex items-center justify-center p-4 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100">
