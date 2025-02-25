@@ -1,92 +1,100 @@
 {% extends 'layouts/base.html' %}
 {% from 'layouts/components/badges.html' import status_badge %}
 {% from 'layouts/components/buttons.html' import action_button %}
-{% from 'layouts/components/cards.html' import data_card %}
 
-{% block title %}Ideas{% endblock %}
+{% block title %}Ideas - Idea Management{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4">
-    <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center space-x-3">
-            <svg class="w-8 h-8 text-intelligence-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
+<div class="container mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-lightbulb text-2xl text-intelligence-purple"></i>
             <h1 class="text-2xl font-bold text-data-text">Ideas</h1>
         </div>
-        {{ action_button('New Idea', 'experiment', icon='brain', href=url_for('ideas_create')) }}
+        <div class="flex gap-3">
+            {{ action_button('New Idea', url_for('ideas_create'), icon='fas fa-plus') }}
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for idea in ideas %}
-            {% call data_card() %}
-                <div class="flex items-start justify-between">
-                    <div class="space-y-2">
-                        <h3 class="text-lg font-semibold text-data-text">
-                            <a href="{{ url_for('ideas_show', id=idea.id) }}" class="hover:text-intelligence-purple">
-                                {{ idea.title }}
+        <div class="bg-cognitive-white rounded-lg shadow-sm p-6">
+            <div class="flex items-start gap-3">
+                <div class="mt-1">
+                    <i class="fas fa-lightbulb text-intelligence-purple"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h2 class="font-medium text-data-text">{{ idea.title }}</h2>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                {% if idea.status %}
+                                    {{ status_badge(idea.status.name, idea.status.name|lower) }}
+                                {% endif %}
+                                {% if idea.is_experimental %}
+                                    {{ status_badge('Experimental', 'experimental', 'innovation') }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ url_for('ideas_edit', id=idea.id) }}" 
+                               class="text-data-text/60 hover:text-intelligence-purple"
+                               title="Edit idea">
+                                <i class="fas fa-edit"></i>
                             </a>
-                        </h3>
-                        <div class="flex items-center space-x-2">
-                            {{ status_badge(idea.status) }}
-                            {% if idea.is_experimental %}
-                                {{ status_badge('experimental', type='innovation') }}
-                            {% endif %}
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="{{ url_for('ideas_edit', id=idea.id) }}" 
-                           class="text-data-text hover:text-intelligence-purple"
-                           title="Edit idea">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
+
+                    {% if idea.description %}
+                    <p class="text-sm text-data-text/60 mt-3">
+                        {{ idea.description|truncate(150) }}
+                    </p>
+                    {% endif %}
+
+                    {% if idea.tech_stacks %}
+                    <div class="mt-4">
+                        <div class="flex flex-wrap gap-2">
+                            {% for tech in idea.tech_stacks %}
+                            <span class="text-xs bg-algorithm-gray text-data-text/60 px-2 py-1 rounded-md">
+                                <i class="fas fa-layer-group text-performance-green mr-1"></i>
+                                {{ tech.name }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex items-center justify-between mt-4 pt-4 border-t border-interface-divider">
+                        <div class="flex items-center gap-4 text-sm text-data-text/60">
+                            <span class="flex items-center gap-1">
+                                <i class="fas fa-sync"></i>
+                                {{ idea.evolution_cycles|length }} Cycles
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i class="fas fa-tasks"></i>
+                                {{ idea.requirements|length }} Requirements
+                            </span>
+                        </div>
+                        <a href="{{ url_for('ideas_show', id=idea.id) }}" 
+                           class="text-intelligence-purple hover:text-intelligence-purple/80 flex items-center gap-1">
+                            View Details
+                            <i class="fas fa-arrow-right text-sm"></i>
                         </a>
                     </div>
                 </div>
-
-                <p class="mt-2 text-sm text-data-text/80 line-clamp-2">{{ idea.description }}</p>
-
-                <div class="mt-4 flex items-center justify-between text-sm text-data-text/60">
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {{ idea.created_at.strftime('%Y-%m-%d') }}
-                        </div>
-                        <div class="flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            {{ idea.requirements|length }} Requirements
-                        </div>
-                    </div>
-                    {% if idea.evolution_cycles %}
-                        <div class="flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            {{ idea.evolution_cycles|length }} Cycles
-                        </div>
-                    {% endif %}
-                </div>
-            {% endcall %}
-        {% else %}
-            <div class="col-span-full">
-                {% call data_card() %}
-                    <div class="text-center py-8">
-                        <svg class="mx-auto h-12 w-12 text-data-text/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-data-text">No ideas yet</h3>
-                        <p class="mt-1 text-sm text-data-text/60">Get started by creating a new idea.</p>
-                        <div class="mt-6">
-                            {{ action_button('New Idea', 'experiment', icon='brain', href=url_for('ideas_create')) }}
-                        </div>
-                    </div>
-                {% endcall %}
             </div>
+        </div>
+        {% else %}
+        <div class="col-span-full">
+            <div class="bg-cognitive-white rounded-lg shadow-sm p-8 text-center">
+                <div class="text-6xl text-intelligence-purple/20 mb-4">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3 class="text-xl font-medium text-data-text mb-2">No Ideas Yet</h3>
+                <p class="text-data-text/60 mb-6">Create your first idea to start innovating!</p>
+                {{ action_button('Create Idea', url_for('ideas_create'), icon='fas fa-plus') }}
+            </div>
+        </div>
         {% endfor %}
     </div>
 </div>

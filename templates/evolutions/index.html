@@ -1,43 +1,76 @@
 {% extends 'layouts/base.html' %}
+{% from 'layouts/components/badges.html' import status_badge %}
+{% from 'layouts/components/buttons.html' import action_button %}
 
 {% block title %}Evolution Cycles - Idea Management{% endblock %}
 
 {% block content %}
-<div class="container mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">Evolution Cycles</h1>
-        <a href="{{ url_for('evolutions_create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
-            New Evolution Cycle
-        </a>
+<div class="container mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-sync text-2xl text-discovery-blue"></i>
+            <h1 class="text-2xl font-bold text-data-text">Evolution Cycles</h1>
+        </div>
+        <div class="flex gap-3">
+            {{ action_button('New Evolution Cycle', url_for('evolutions_create'), icon='fas fa-plus') }}
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for cycle in cycles %}
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-cognitive-white rounded-lg shadow-sm p-6">
             <div class="flex justify-between items-start mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">{{ cycle.name }}</h2>
-                <span class="status-badge bg-blue-100 text-blue-800">
-                    {{ cycle.status.name if cycle.status else 'Not Started' }}
-                </span>
+                <div class="flex items-start gap-3">
+                    <div class="mt-1">
+                        <i class="fas fa-sync text-discovery-blue"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-medium text-data-text">{{ cycle.name }}</h2>
+                        {% if cycle.status %}
+                            {{ status_badge(cycle.status.name, cycle.status.name|lower) }}
+                        {% else %}
+                            {{ status_badge('Not Started', 'not-started') }}
+                        {% endif %}
+                    </div>
+                </div>
             </div>
+
+            {% if cycle.ideas %}
             <div class="mb-4">
-                <h3 class="text-sm font-medium text-gray-600 mb-2">Associated Ideas:</h3>
+                <h3 class="text-sm font-medium text-data-text/60 mb-2">Associated Ideas</h3>
                 <div class="flex flex-wrap gap-2">
                     {% for idea in cycle.ideas %}
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{{ idea.title }}</span>
+                    <span class="text-xs bg-algorithm-gray text-data-text px-2 py-1 rounded-md">
+                        <i class="fas fa-lightbulb text-intelligence-purple mr-1"></i>
+                        {{ idea.title }}
+                    </span>
                     {% endfor %}
                 </div>
             </div>
-            <div class="flex justify-between items-center">
-                <div class="text-sm text-gray-500">
-                    {{ cycle.phases|length }} Phases
+            {% endif %}
+
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-interface-divider">
+                <div class="flex items-center gap-2 text-sm text-data-text/60">
+                    <i class="fas fa-layer-group"></i>
+                    <span>{{ cycle.phases|length }} Phases</span>
                 </div>
-                <a href="{{ url_for('evolutions_show', id=cycle.id) }}" class="text-blue-500 hover:text-blue-600">View Details →</a>
+                <a href="{{ url_for('evolutions_show', id=cycle.id) }}" 
+                   class="text-discovery-blue hover:text-discovery-blue/80 flex items-center gap-1">
+                    View Details
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </a>
             </div>
         </div>
         {% else %}
-        <div class="col-span-full text-center py-12">
-            <p class="text-gray-500 text-lg">No evolution cycles found. Create your first cycle!</p>
+        <div class="col-span-full">
+            <div class="bg-cognitive-white rounded-lg shadow-sm p-8 text-center">
+                <div class="text-6xl text-discovery-blue/20 mb-4">
+                    <i class="fas fa-sync"></i>
+                </div>
+                <h3 class="text-xl font-medium text-data-text mb-2">No Evolution Cycles Yet</h3>
+                <p class="text-data-text/60 mb-6">Create your first evolution cycle to start tracking idea progress!</p>
+                {{ action_button('Create Evolution Cycle', url_for('evolutions_create'), icon='fas fa-plus') }}
+            </div>
         </div>
         {% endfor %}
     </div>
