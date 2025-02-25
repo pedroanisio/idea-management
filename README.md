@@ -6,6 +6,154 @@ A comprehensive web application for managing ideas, their evolution cycles, and 
 
 Idea Management is a Flask-based web application that helps you organize and track your ideas from conception to implementation. It provides a structured way to manage ideas, their evolution cycles, phases, requirements, and technical specifications.
 
+## Entity Relationship Model
+
+### Core Entities
+
+1. **Idea**
+   - Primary entity for project ideas
+   - Fields: title, description, timestamps
+   - Relations:
+     - Has one Status
+     - Has many EvolutionCycles through IdeaEvolutionCycle
+
+2. **EvolutionCycle**
+   - Represents development cycles/stages
+   - Fields: name, description, timestamps
+   - Relations:
+     - Has one Status
+     - Has many Ideas through IdeaEvolutionCycle
+     - Has many Phases
+
+3. **Phase**
+   - Represents stages within an evolution cycle
+   - Fields: name, description, order, timestamps
+   - Relations:
+     - Belongs to one EvolutionCycle
+     - Has one Status
+     - Connected to Ideas through IdeaEvolutionPhase
+
+4. **Requirement**
+   - Represents project requirements
+   - Fields: name, description, timestamps
+   - Relations:
+     - Has one RequirementType
+     - Has one RequirementPriority
+     - Has one Status
+     - Belongs to one IdeaEvolutionPhase
+
+### Technology Stack Entities
+
+5. **TechStack**
+   - Represents collections of technologies
+   - Fields: name, description, timestamps
+   - Relations:
+     - Has one TechnologyType
+     - Connected to IdeaEvolutionCycles
+     - Connected to Technologies and Versions
+
+6. **Technology**
+   - Represents individual technologies
+   - Fields: name, description, timestamps
+   - Relations:
+     - Has one TechnologyType
+     - Has many Versions
+     - Has many VersionAggregates
+
+7. **TechnologyVersion**
+   - Represents specific versions of technologies
+   - Fields: version, release_date, end_of_life_date, is_default
+   - Relations:
+     - Belongs to one Technology
+     - Has many VersionAggregates
+
+### Supporting Entities
+
+- **Status**: Used across multiple entities for state tracking
+- **RequirementType**: Classifies requirements
+- **RequirementPriority**: Defines priority levels
+- **TechnologyType**: Classifies technologies and tech stacks
+
+## Routes and Templates
+
+### Main Routes
+
+| Route | Method | Template | Description |
+|-------|---------|----------|-------------|
+| `/` | GET | `index.html` | Home page |
+| `/ideas` | GET | `ideas/index.html` | List all ideas |
+| `/ideas/create` | GET, POST | `ideas/create.html` | Create new idea |
+| `/ideas/<id>` | GET | `ideas/show.html` | View idea details |
+| `/ideas/<id>/edit` | GET, POST | `ideas/edit.html` | Edit idea |
+| `/ideas/<id>/delete` | POST | - | Delete idea |
+| `/ideas/<id>/export` | POST | - | Export idea data to YAML |
+| `/ideas/<id>/control-panel` | GET | `control_panel/idea.html` | Idea control panel |
+
+### Evolution Cycle Routes
+
+| Route | Method | Template | Description |
+|-------|---------|----------|-------------|
+| `/evolutions` | GET | `evolutions/index.html` | List evolution cycles |
+| `/evolutions/create` | GET, POST | `evolutions/create.html` | Create evolution cycle |
+| `/evolutions/<id>` | GET | `evolutions/show.html` | View evolution cycle |
+| `/evolutions/<id>/edit` | GET, POST | `evolutions/edit.html` | Edit evolution cycle |
+| `/evolutions/<id>/delete` | POST | - | Delete evolution cycle |
+| `/evolutions/link/<idea_id>` | GET, POST | `evolutions/link.html` | Link evolution to idea |
+| `/evolutions/<id>/techstacks/add` | GET, POST | `evolutions/add_techstack.html` | Add tech stack |
+
+### Phase Routes
+
+| Route | Method | Template | Description |
+|-------|---------|----------|-------------|
+| `/phases/<id>` | GET | `phases/show.html` | View phase |
+| `/phases/<id>/edit` | GET, POST | `phases/edit.html` | Edit phase |
+| `/phases/<id>/delete` | POST | - | Delete phase |
+| `/evolutions/<eid>/phases/create` | GET, POST | `evolutions/phases/create.html` | Create phase |
+| `/evolutions/<eid>/phases/<pid>/edit` | GET, POST | `evolutions/phases/edit.html` | Edit phase |
+| `/evolutions/<eid>/phases/<pid>/delete` | POST | - | Delete phase |
+
+### Requirement Routes
+
+| Route | Method | Template | Description |
+|-------|---------|----------|-------------|
+| `/requirements` | GET | `requirements/index.html` | List requirements |
+| `/requirements/create` | GET, POST | `requirements/create.html` | Create requirement |
+| `/requirements/<id>` | GET | `requirements/show.html` | View requirement |
+| `/requirements/<id>/edit` | GET, POST | `requirements/edit.html` | Edit requirement |
+| `/requirements/<id>/delete` | POST | - | Delete requirement |
+
+### Technology Routes
+
+| Route | Method | Template | Description |
+|-------|---------|----------|-------------|
+| `/technologies` | GET | `technologies/index.html` | List technologies |
+| `/technologies/create` | GET, POST | `technologies/create.html` | Create technology |
+| `/technologies/<id>` | GET | `technologies/show.html` | View technology |
+| `/technologies/<id>/edit` | GET, POST | `technologies/edit.html` | Edit technology |
+| `/technologies/<id>/delete` | POST | - | Delete technology |
+| `/technologies/<id>/add-version` | GET, POST | `technologies/add_version.html` | Add version |
+| `/technologies/<id>/versions` | GET, POST | `technologies/versions.html` | Manage versions |
+
+### Tech Stack Routes
+
+| Route | Method | Template | Description |
+|-------|---------|----------|-------------|
+| `/techstacks` | GET | `techstacks/index.html` | List tech stacks |
+| `/techstacks/create` | GET, POST | `techstacks/create.html` | Create tech stack |
+| `/techstacks/<id>` | GET | `techstacks/show.html` | View tech stack |
+| `/techstacks/<id>/edit` | GET, POST | `techstacks/edit.html` | Edit tech stack |
+| `/techstacks/<id>/delete` | POST | - | Delete tech stack |
+
+### Technology Type Routes
+
+| Route | Method | Template | Description |
+|-------|---------|----------|-------------|
+| `/technology-types` | GET | `technology_types/index.html` | List types |
+| `/technology-types/create` | GET, POST | `technology_types/create.html` | Create type |
+| `/technology-types/<id>` | GET | `technology_types/show.html` | View type |
+| `/technology-types/<id>/edit` | GET, POST | `technology_types/edit.html` | Edit type |
+| `/technology-types/<id>/delete` | POST | - | Delete type |
+
 ## Features
 
 ### Core Features
@@ -14,11 +162,13 @@ Idea Management is a Flask-based web application that helps you organize and tra
 - Create, view, edit, and delete ideas
 - Track idea status and evolution
 - Associate ideas with tech stacks
+- Export idea data to YAML format with filters
 
 #### Evolution Cycles
 - Organize idea development into evolution cycles
 - Track cycle progress and status
 - Link cycles to specific phases
+- Manage tech stacks per cycle
 
 #### Phases Management
 - Create and manage development phases
@@ -36,18 +186,14 @@ Idea Management is a Flask-based web application that helps you organize and tra
 - Create and manage tech stacks
 - Associate technologies with tech stacks
 - Link tech stacks to ideas
-
-#### Technologies Management
-- Maintain a catalog of technologies
-- Track technology usage across tech stacks
-- View technology relationships
+- Version management for technologies
 
 ### UI/UX Features
 
 - Modern, responsive design using Tailwind CSS
 - Dual navigation system:
   - Top navbar for quick access
-  - Sidebar for hierarchical navigation
+  - Control panel for idea management
 - Active state indicators for current page
 - Flash messages with dismissal option
 - Mobile-friendly layout
@@ -77,6 +223,7 @@ idea-management/
 │   └── __init__.py
 ├── templates/            # Jinja2 templates
 │   ├── layouts/         # Base templates and components
+│   ├── control_panel/   # Control panel views
 │   ├── ideas/           # Idea management views
 │   ├── evolutions/      # Evolution cycle views
 │   ├── phases/          # Phase management views
@@ -90,133 +237,72 @@ idea-management/
 └── requirements.txt     # Python dependencies
 ```
 
-# Review of Application Models and README Update
+## Installation and Setup
 
-## Model Review
-
-After reviewing your application's models in `models/core.py`, I can see you've built a comprehensive system for managing ideas, their evolution cycles, phases, requirements, and technology stacks. Here's an analysis of your current model structure:
-
-### Core Models
-
-1. **Idea**
-   - Represents the main concept being developed
-   - Has relationships with evolution cycles and statuses
-   - Well-structured with appropriate fields for tracking creation and updates
-
-2. **EvolutionCycle**
-   - Represents different development cycles for ideas
-   - Connected to ideas through IdeaEvolutionCycle junction table
-   - Allows tracking of different development iterations
-
-3. **Phase**
-   - Represents stages within evolution cycles
-   - Has an order field for sequencing
-   - Connected to specific idea evolution cycles through IdeaEvolutionPhase
-
-4. **Requirement**
-   - Tracks specific requirements for ideas
-   - Connected to phases, types, priorities, and statuses
-   - Includes fields for tracking completion
-
-5. **Technology Stack**
-   - Comprehensive modeling of technologies, versions, and stacks
-   - Uses association tables for many-to-many relationships
-   - Includes categorization through TechnologyType
-
-### Strengths
-
-- **Comprehensive Relationships**: Your models capture complex relationships between ideas, cycles, phases, and requirements.
-- **Status Tracking**: You have status models for tracking progress across different entities.
-- **Versioning Support**: Good support for technology versioning and aggregation.
-- **Timestamps**: Consistent use of creation and update timestamps.
-
-### Improvement Opportunities
-
-1. **Documentation**: Add docstrings to models to explain their purpose and relationships.
-2. **Validation**: Consider adding validation for critical fields (e.g., ensuring phase order is unique within a cycle).
-3. **Soft Delete**: Consider implementing soft delete for important entities to preserve history.
-4. **User Association**: If this will be a multi-user system, consider adding user relationships.
-5. **Search Optimization**: Add indexes for frequently queried fields.
-
-## Features
-
-- **Idea Management**: Create, track, and manage ideas with detailed descriptions and statuses
-- **Evolution Cycles**: Organize development into structured evolution cycles
-- **Phase Tracking**: Break down cycles into ordered phases with specific requirements
-- **Requirement Management**: Track detailed requirements with types, priorities, and completion status
-- **Technology Stack Planning**: Define and associate technology stacks with specific idea phases
-- **Progress Visualization**: View completion rates and progress through interactive charts
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Keyboard Shortcuts**: Power user features for quick navigation and actions
-- **Accessibility**: ARIA attributes and keyboard navigation support
-
-## Technology Stack
-
-- **Backend**: Flask, SQLAlchemy, SQLite
-- **Frontend**: HTML, CSS (Tailwind CSS), JavaScript
-- **Libraries**: Chart.js for data visualization
-
-
-## Setup
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd idea-management
-   ```
-
-2. Create and activate a virtual environment:
+1. Clone the repository
+2. Create a virtual environment:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate  # Linux/Mac
    ```
-
 3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-
 4. Initialize the database:
    ```bash
-   flask db init
-   flask db migrate
    flask db upgrade
    ```
-
 5. Run the application:
    ```bash
    flask run
    ```
 
-   The application will be available at `http://localhost:5000`
+## Version
 
-## Database Models
+Current version: v1.0.0-poc
 
-- **Idea**: Core concept being developed
-- **EvolutionCycle**: Development iteration of an idea
-- **Phase**: Stage within an evolution cycle
-- **Requirement**: Specific need or feature
-- **RequirementType**: Categorization of requirements
-- **RequirementPriority**: Priority level of requirements
-- **Status**: Current state of various entities
-- **TechStack**: Collection of technologies
-- **Technology**: Individual technology or tool
+## Known Issues and Missing Features
 
-## Contributing
+### Route and Template Inconsistencies
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+1. **Routes Without Templates**
+   - `/ideas/<id>/tech-stacks/manage` (POST only)
+   - `/ideas/<id>/evolution-cycles/<cycle_id>` and its edit/delete routes
+   - `/evolutions/<id>/techstacks/<stack_id>/remove` (POST only)
+   - `/technologies/<tech_id>/versions/<version_id>/remove` (POST only)
 
-## License
+2. **Templates Without Direct Routes**
+   - `errors/404.html` and `errors/500.html` (error pages)
+   - `layouts/navbar.html` (included in other templates)
+   - `evolutions/detail.html` (possibly redundant with show.html)
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Missing Features
 
-## Status
+1. **User Management**
+   - User authentication and authorization
+   - User roles and permissions
+   - Team collaboration features
 
-Current status: Beta
-- All core features implemented
-- UI/UX improvements ongoing
-- Ready for testing and feedback
+2. **Data Management**
+   - Bulk import/export of data
+   - Data validation rules
+   - Data archiving functionality
+
+3. **Integration Features**
+   - API endpoints for external integration
+   - Webhook support
+   - Third-party service integrations
+
+4. **Advanced Features**
+   - Search and filtering across all entities
+   - Advanced reporting and analytics
+   - Custom fields for entities
+   - Template support for ideas and requirements
+
+5. **UI/UX Improvements**
+   - Rich text editor for descriptions
+   - Drag-and-drop interface for ordering
+   - Real-time updates
+   - Advanced filtering in lists
+   - Bulk actions on items
