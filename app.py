@@ -855,20 +855,19 @@ def create_app():
         tech_stack = TechStack.query.get_or_404(tech_stack_id)
         
         try:
-            if tech_stack not in phase.tech_stacks:
-                return jsonify({'error': 'Tech stack is not assigned to this phase'}), 400
-                
-            phase.tech_stacks.remove(tech_stack)
-            db.session.commit()
+            if tech_stack in phase.tech_stacks:
+                phase.tech_stacks.remove(tech_stack)
+                db.session.commit()
+                flash('Tech stack removed successfully!', 'success')
+            else:
+                flash('Tech stack is not assigned to this phase.', 'warning')
             
-            return jsonify({
-                'success': True,
-                'message': f'Tech stack {tech_stack.name} removed successfully'
-            })
+            return redirect(url_for('idea_control_panel', id=phase.idea_evolution_cycle.idea.id))
             
         except Exception as e:
             db.session.rollback()
-            return jsonify({'error': str(e)}), 500
+            flash('Error removing tech stack. Please try again.', 'danger')
+            return redirect(url_for('idea_control_panel', id=phase.idea_evolution_cycle.idea.id))
 
     # Requirements routes
     @app.route('/requirements')
@@ -1358,6 +1357,19 @@ def create_app():
             if req.status.name == 'Completed'
         )
 
+        # Calculate total tech stacks
+        total_tech_stacks = sum(len(phase.tech_stacks) for cycle in idea.evolution_cycles for phase in cycle.phases)
+
+        stats = {
+            'total_cycles': total_cycles,
+            'completed_cycles': completed_cycles,
+            'cycle_completion_rate': round((completed_cycles / total_cycles * 100) if total_cycles > 0 else 0),
+            'total_requirements': total_requirements,
+            'completed_requirements': completed_requirements,
+            'requirement_completion_rate': round((completed_requirements / total_requirements * 100) if total_requirements > 0 else 0),
+            'total_tech_stacks': total_tech_stacks
+        }
+
         # Calculate completion percentages for each evolution cycle
         for cycle in idea.evolution_cycles:
             total_phases = len(cycle.phases)
@@ -1369,15 +1381,6 @@ def create_app():
                 total_phase_reqs = len(phase.requirements)
                 completed_phase_reqs = len([r for r in phase.requirements if r.status.name == 'Completed'])
                 phase.completion_percentage = round((completed_phase_reqs / total_phase_reqs * 100) if total_phase_reqs > 0 else 0)
-
-        stats = {
-            'total_cycles': total_cycles,
-            'completed_cycles': completed_cycles,
-            'cycle_completion_rate': round((completed_cycles / total_cycles * 100) if total_cycles > 0 else 0),
-            'total_requirements': total_requirements,
-            'completed_requirements': completed_requirements,
-            'requirement_completion_rate': round((completed_requirements / total_requirements * 100) if total_requirements > 0 else 0)
-        }
 
         return render_template('control_panel/idea.html',
                              idea=idea,

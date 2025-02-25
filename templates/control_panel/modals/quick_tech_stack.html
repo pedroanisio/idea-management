@@ -1,0 +1,151 @@
+<!-- Quick Tech Stack Modal -->
+<div id="quickTechStackModal" class="hidden fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-6 border border-interface-divider w-[600px] shadow-lg rounded-lg bg-white">
+        <!-- Header -->
+        <div class="flex justify-between items-center pb-4 border-b border-interface-divider mb-6">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-layer-group text-2xl text-intelligence-purple"></i>
+                <div>
+                    <h3 class="text-lg font-medium text-data-text">Add Tech Stack</h3>
+                    <p class="text-sm text-data-text/60">Add a technology stack to your idea's evolution phase</p>
+                </div>
+            </div>
+            <button type="button"
+                    onclick="document.getElementById('quickTechStackModal').classList.add('hidden')"
+                    class="text-data-text/40 hover:text-data-text focus:outline-none"
+                    aria-label="Close modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form action="{{ url_for('techstacks_create') }}" method="POST" class="space-y-6">
+            <!-- Phase Selection -->
+            <div class="space-y-2">
+                <label for="tech_stack_phase_id" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Select Phase
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <div class="relative">
+                    <select name="idea_evolution_phase_id" 
+                            id="tech_stack_phase_id" 
+                            class="w-full appearance-none rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white pl-3 pr-10 py-2"
+                            required
+                            aria-required="true">
+                        <option value="">Select a phase...</option>
+                        {% for cycle in idea.evolution_cycles %}
+                            <optgroup label="{{ cycle.evolution_cycle.name }}">
+                                {% for phase in cycle.phases %}
+                                    <option value="{{ phase.id }}">{{ phase.phase.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-data-text/40">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-data-text/40">Choose the phase where this tech stack will be used</p>
+            </div>
+
+            <!-- Name Field -->
+            <div class="space-y-2">
+                <label for="tech_stack_name" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Name
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <input type="text" 
+                       id="tech_stack_name"
+                       name="name" 
+                       required
+                       aria-required="true"
+                       placeholder="Enter tech stack name"
+                       class="w-full rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white"
+                       minlength="2">
+                <p class="text-xs text-data-text/40">The name of the technology or framework</p>
+            </div>
+
+            <!-- Description Field -->
+            <div class="space-y-2">
+                <label for="tech_stack_description" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Description
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <textarea id="tech_stack_description"
+                         name="description" 
+                         rows="4" 
+                         required
+                         aria-required="true"
+                         placeholder="Describe how this technology will be used..."
+                         class="w-full rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white"></textarea>
+                <p class="text-xs text-data-text/40">Explain the role and purpose of this technology in your project</p>
+            </div>
+
+            <!-- Type Selection -->
+            <div class="space-y-2">
+                <label for="tech_stack_type" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Type
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <div class="relative">
+                    <select name="type_id" 
+                            id="tech_stack_type"
+                            required
+                            aria-required="true"
+                            class="w-full appearance-none rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white pl-3 pr-10 py-2">
+                        <option value="">Select a type...</option>
+                        {% for type in tech_stack_types %}
+                        <option value="{{ type.id }}">{{ type.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-data-text/40">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-data-text/40">Categorize the technology by its type</p>
+            </div>
+
+            <!-- Category Selection -->
+            <div class="space-y-2">
+                <label for="tech_stack_category" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Category
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <div class="relative">
+                    <select name="category_id" 
+                            id="tech_stack_category"
+                            required
+                            aria-required="true"
+                            class="w-full appearance-none rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white pl-3 pr-10 py-2">
+                        <option value="">Select a category...</option>
+                        {% for category in tech_stack_categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-data-text/40">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-data-text/40">Group the technology by its primary function</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-3 pt-4 border-t border-interface-divider">
+                <button type="button"
+                        onclick="document.getElementById('quickTechStackModal').classList.add('hidden')"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-interface-divider text-data-text bg-white hover:bg-algorithm-gray rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-data-text/20 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-intelligence-purple text-white hover:bg-intelligence-purple/90 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-intelligence-purple transition-colors">
+                    <i class="fas fa-plus"></i>
+                    Add Tech Stack
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

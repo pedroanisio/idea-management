@@ -3,176 +3,235 @@
 {% block title %}{{ idea.title }} Control Panel - Idea Management{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <!-- Idea Header -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">{{ idea.title }}</h1>
-                <p class="text-gray-600 mt-1">{{ idea.description }}</p>
+<div class="container mx-auto px-4 py-8 space-y-8">
+    <!-- Idea Header Card -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-start">
+            <div class="space-y-2">
+                <h1 class="text-2xl font-bold text-data-text">{{ idea.title }}</h1>
+                <p class="text-data-text/60">{{ idea.description }}</p>
             </div>
-            <div class="flex space-x-2">
+            <div class="flex gap-3">
                 <a href="{{ url_for('ideas_edit', id=idea.id) }}" 
-                   class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    <i class="fas fa-edit mr-1"></i> Edit Idea
+                   class="inline-flex items-center gap-2 bg-intelligence-purple text-white hover:bg-intelligence-purple/90 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors">
+                    <i class="fas fa-edit"></i>
+                    Edit Idea
                 </a>
-                <button onclick="document.getElementById('exportModal').classList.remove('hidden')"
-                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <i class="fas fa-file-export mr-2"></i>
+                {% if idea %}
+                <button type="button"
+                        onclick="document.getElementById('exportModal').classList.remove('hidden')"
+                        class="inline-flex items-center gap-2 border border-interface-divider text-data-text hover:bg-algorithm-gray font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-data-text/20 focus:ring-offset-2 transition-colors">
+                    <i class="fas fa-file-export"></i>
                     Export
                 </button>
+                {% endif %}
             </div>
         </div>
         
         <!-- Idea Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <div class="bg-gray-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-gray-500">Status</h3>
-                <p class="mt-1 text-xl font-semibold">{{ idea.status.name }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+            <div class="bg-algorithm-gray rounded-lg p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-info-circle text-discovery-blue"></i>
+                    <h3 class="text-sm font-medium text-data-text/60">Status</h3>
+                </div>
+                <p class="text-xl font-semibold text-data-text">{{ idea.status.name }}</p>
             </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-gray-500">Evolution Cycles</h3>
-                <p class="mt-1 text-xl font-semibold">{{ idea.evolution_cycles|length }}</p>
+            <div class="bg-algorithm-gray rounded-lg p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-code-branch text-intelligence-purple"></i>
+                    <h3 class="text-sm font-medium text-data-text/60">Evolution Cycles</h3>
+                </div>
+                <p class="text-xl font-semibold text-data-text">{{ idea.evolution_cycles|length }}</p>
             </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-gray-500">Total Requirements</h3>
-                <p class="mt-1 text-xl font-semibold">
-                    {% set req_count = namespace(total=0) %}
-                    {% for cycle in idea.evolution_cycles %}
-                        {% for phase in cycle.phases %}
-                            {% set req_count.total = req_count.total + phase.requirements|length %}
-                        {% endfor %}
-                    {% endfor %}
-                    {{ req_count.total }}
-                </p>
+            <div class="bg-algorithm-gray rounded-lg p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-tasks text-performance-green"></i>
+                    <h3 class="text-sm font-medium text-data-text/60">Requirements</h3>
+                </div>
+                <p class="text-xl font-semibold text-data-text">{{ stats.total_requirements }}</p>
             </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-gray-500">Tech Stacks</h3>
-                <p class="mt-1 text-xl font-semibold">
-                    {% set stack_count = namespace(total=0) %}
-                    {% for cycle in idea.evolution_cycles %}
-                        {% for phase in cycle.phases %}
-                            {% set stack_count.total = stack_count.total + phase.tech_stacks|length %}
-                        {% endfor %}
-                    {% endfor %}
-                    {{ stack_count.total }}
-                </p>
+            <div class="bg-algorithm-gray rounded-lg p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-layer-group text-discovery-blue"></i>
+                    <h3 class="text-sm font-medium text-data-text/60">Tech Stacks</h3>
+                </div>
+                <p class="text-xl font-semibold text-data-text">{{ stats.total_tech_stacks }}</p>
             </div>
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-        <div class="flex space-x-4">
+    <!-- Quick Actions Card -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium text-data-text">Quick Actions</h3>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
             <button onclick="document.getElementById('quickRequirementModal').classList.remove('hidden')"
-                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                <i class="fas fa-plus mr-1"></i> Add Requirement
+                    class="flex items-center justify-center gap-2 bg-intelligence-purple text-white hover:bg-intelligence-purple/90 font-medium py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors">
+                <i class="fas fa-tasks"></i>
+                Add Requirement
             </button>
-            <a href="{{ url_for('evolutions_create') }}?idea_id={{ idea.id }}"
-               class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                <i class="fas fa-code-branch mr-1"></i> New Evolution Cycle
-            </a>
-            <button onclick="document.getElementById('techStackModal').classList.remove('hidden')"
-                    class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
-                <i class="fas fa-layer-group mr-1"></i> Manage Tech Stacks
+            <button onclick="document.getElementById('quickTechStackModal').classList.remove('hidden')"
+                    class="flex items-center justify-center gap-2 bg-intelligence-purple text-white hover:bg-intelligence-purple/90 font-medium py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors">
+                <i class="fas fa-layer-group"></i>
+                Add Tech Stack
             </button>
+            {% if idea %}
+            <button onclick="document.getElementById('exportModal').classList.remove('hidden')"
+                    class="flex items-center justify-center gap-2 bg-intelligence-purple text-white hover:bg-intelligence-purple/90 font-medium py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors">
+                <i class="fas fa-file-export"></i>
+                Export
+            </button>
+            {% endif %}
         </div>
     </div>
 
     <!-- Evolution Cycles -->
     {% for cycle in idea.evolution_cycles %}
-    <div class="mb-8 p-4 bg-white rounded-lg shadow">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold">{{ cycle.evolution_cycle.name }}</h3>
-            <span class="px-3 py-1 text-sm rounded-full 
-                {% if cycle.status.name == 'Completed' %}bg-green-100 text-green-800
-                {% elif cycle.status.name == 'In Progress' %}bg-blue-100 text-blue-800
-                {% else %}bg-gray-100 text-gray-800{% endif %}">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-code-branch text-2xl text-intelligence-purple"></i>
+                <h3 class="text-xl font-bold text-data-text">{{ cycle.evolution_cycle.name }}</h3>
+            </div>
+            {% set status_classes = {
+                'Completed': 'bg-performance-green/10 text-performance-green',
+                'In Progress': 'bg-discovery-blue/10 text-discovery-blue',
+                'New': 'bg-intelligence-purple/10 text-intelligence-purple',
+                'Blocked': 'bg-red-500/10 text-red-500'
+            } %}
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full {{ status_classes[cycle.status.name] }}">
+                <i class="fas fa-{{ 'check' if cycle.status.name == 'Completed' 
+                                else 'spinner' if cycle.status.name == 'In Progress'
+                                else 'exclamation-circle' if cycle.status.name == 'Blocked'
+                                else 'star' }}"></i>
                 {{ cycle.status.name }}
-            </span>
+            </div>
         </div>
         
         <!-- Phases -->
-        <div class="space-y-4">
+        <div class="space-y-6">
             {% for phase in cycle.phases|sort(attribute='order') %}
-            <div class="border rounded-lg p-4">
-                <div class="flex justify-between items-center mb-2">
-                    <h4 class="text-lg font-semibold">{{ phase.phase.name }}</h4>
-                    <span class="px-2 py-1 text-sm rounded-full 
-                        {% if phase.status.name == 'Completed' %}bg-green-100 text-green-800
-                        {% elif phase.status.name == 'In Progress' %}bg-blue-100 text-blue-800
-                        {% else %}bg-gray-100 text-gray-800{% endif %}">
-                        {{ phase.status.name }}
-                    </span>
+            <div class="border border-interface-divider rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-3">
+                        <h4 class="text-lg font-semibold text-data-text">{{ phase.phase.name }}</h4>
+                        <div class="flex items-center gap-2 px-3 py-1 rounded-full {{ status_classes[phase.status.name] }}">
+                            <i class="fas fa-{{ 'check' if phase.status.name == 'Completed' 
+                                            else 'spinner' if phase.status.name == 'In Progress'
+                                            else 'exclamation-circle' if phase.status.name == 'Blocked'
+                                            else 'star' }}"></i>
+                            {{ phase.status.name }}
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Tech Stacks for Phase -->
-                <div class="mt-3">
-                    <div class="flex justify-between items-center mb-2">
-                        <h5 class="text-sm font-medium text-gray-700">Tech Stacks</h5>
-                        <button onclick="openTechStackModal('{{ phase.id }}')" 
-                                class="text-sm text-blue-600 hover:text-blue-800">
-                            Manage Tech Stacks
+                <div class="mt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-layer-group text-discovery-blue"></i>
+                            <h5 class="text-sm font-medium text-data-text">Tech Stacks</h5>
+                        </div>
+                        <button type="button"
+                               onclick="showTechStackModal({{ phase.id }})"
+                               class="inline-flex items-center gap-2 text-sm text-intelligence-purple hover:text-intelligence-purple/80">
+                            <i class="fas fa-plus"></i>
+                            Add Tech Stack
                         </button>
                     </div>
                     <div class="tech-stacks-container" data-phase-id="{{ phase.id }}">
+                        {% if phase.tech_stacks %}
                         <div class="flex flex-wrap gap-2">
                             {% for tech_stack in phase.tech_stacks %}
                             <div class="group relative tech-stack-item" data-tech-stack-id="{{ tech_stack.id }}">
-                                <div class="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
+                                <div class="flex items-center gap-2 px-3 py-1.5 bg-algorithm-gray rounded-full text-sm">
                                     {{ tech_stack.name }}
-                                    <button onclick="removeTechStack('{{ phase.id }}', '{{ tech_stack.id }}')"
-                                            class="text-red-500 hover:text-red-700">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <form method="POST" action="{{ url_for('phases_remove_techstack', phase_id=phase.id, tech_stack_id=tech_stack.id) }}" class="inline">
+                                        <button type="submit" class="text-red-500 hover:text-red-700 focus:outline-none">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
                                 </div>
-                                <div class="hidden group-hover:block absolute z-10 w-48 p-2 mt-2 text-sm bg-white rounded-lg shadow-lg border">
-                                    <p class="font-semibold">{{ tech_stack.name }}</p>
-                                    <p class="text-gray-600">{{ tech_stack.description }}</p>
-                                    <div class="mt-1">
-                                        <p class="text-xs font-medium">Technologies:</p>
-                                        <ul class="list-disc list-inside text-xs text-gray-600">
+                                <div class="hidden group-hover:block absolute z-10 w-48 p-3 mt-2 text-sm bg-white rounded-lg shadow-lg border border-interface-divider">
+                                    <p class="font-semibold text-data-text">{{ tech_stack.name }}</p>
+                                    <p class="text-data-text/60 mt-1">{{ tech_stack.description }}</p>
+                                    <div class="mt-2">
+                                        <p class="text-xs font-medium text-data-text">Technologies:</p>
+                                        <ul class="mt-1 space-y-1">
                                             {% for tech in tech_stack.technologies %}
-                                            <li>{{ tech.name }}</li>
+                                            <li class="text-xs text-data-text/60 flex items-center gap-1">
+                                                <i class="fas fa-circle text-[0.5rem]"></i>
+                                                {{ tech.name }}
+                                            </li>
                                             {% endfor %}
                                         </ul>
                                     </div>
                                 </div>
                             </div>
-                            {% else %}
-                            <span class="text-sm text-gray-500">No tech stacks assigned</span>
                             {% endfor %}
                         </div>
+                        {% else %}
+                        <div class="text-center py-8 bg-algorithm-gray/30 rounded-lg">
+                            <div class="text-3xl text-discovery-blue/20 mb-3">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <p class="text-data-text/40 mb-4">No tech stacks assigned to this phase</p>
+                            <button type="button"
+                                   onclick="showTechStackModal({{ phase.id }})"
+                                   class="inline-flex items-center gap-2 bg-intelligence-purple/10 text-intelligence-purple hover:bg-intelligence-purple/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors">
+                                <i class="fas fa-plus"></i>
+                                Add Tech Stack
+                            </button>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
                 <!-- Requirements Section -->
-                <div class="mt-4">
-                    <h4 class="font-medium text-gray-700 mb-2">Requirements</h4>
-                    <div class="space-y-2">
+                <div class="mt-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fas fa-tasks text-performance-green"></i>
+                        <h4 class="text-sm font-medium text-data-text">Requirements</h4>
+                    </div>
+                    {% if phase.requirements %}
+                    <div class="space-y-3">
                         {% for requirement in phase.requirements %}
-                        <div class="bg-gray-50 rounded p-3">
-                            <div class="flex justify-between items-center">
-                                <div>
+                        <div class="bg-algorithm-gray rounded-lg p-4">
+                            <div class="flex justify-between items-start">
+                                <div class="space-y-1">
                                     <a href="{{ url_for('requirements_show', id=requirement.id) }}" 
-                                       class="text-lg font-semibold hover:text-blue-600">
+                                       class="text-lg font-semibold text-data-text hover:text-intelligence-purple">
                                         {{ requirement.name }}
                                     </a>
-                                    <p class="text-sm text-gray-600">{{ requirement.description|truncate(100) }}</p>
+                                    <p class="text-sm text-data-text/60">{{ requirement.description|truncate(100) }}</p>
                                 </div>
-                                <div class="flex items-center space-x-4">
-                                    <span class="px-2 py-1 text-sm rounded-full 
-                                        {% if requirement.status.name == 'Completed' %}bg-green-100 text-green-800
-                                        {% elif requirement.status.name == 'In Progress' %}bg-blue-100 text-blue-800
-                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                        {{ requirement.status.name }}
-                                    </span>
+                                <div class="flex items-center gap-2 px-3 py-1 rounded-full {{ status_classes[requirement.status.name] }}">
+                                    <i class="fas fa-{{ 'check' if requirement.status.name == 'Completed' 
+                                                    else 'spinner' if requirement.status.name == 'In Progress'
+                                                    else 'exclamation-circle' if requirement.status.name == 'Blocked'
+                                                    else 'star' }}"></i>
+                                    {{ requirement.status.name }}
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
+                    {% else %}
+                    <div class="text-center py-8 bg-algorithm-gray/30 rounded-lg">
+                        <div class="text-3xl text-performance-green/20 mb-3">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <p class="text-data-text/40 mb-4">No requirements added to this phase</p>
+                        <button type="button"
+                               onclick="document.getElementById('quickRequirementModal').classList.remove('hidden')"
+                               class="inline-flex items-center gap-2 bg-intelligence-purple/10 text-intelligence-purple hover:bg-intelligence-purple/20 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors">
+                            <i class="fas fa-plus"></i>
+                            Add Requirement
+                        </button>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -181,359 +240,58 @@
     {% endfor %}
 </div>
 
-<!-- Quick Requirement Modal -->
-<div id="quickRequirementModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Add Requirement</h3>
-            <button onclick="document.getElementById('quickRequirementModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-500">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <form action="{{ url_for('requirements_create') }}" method="POST" class="space-y-4">
-            <div class="mb-4">
-                <label for="idea_evolution_phase_id" class="block text-sm font-medium text-gray-700">Select Phase</label>
-                <select name="idea_evolution_phase_id" id="idea_evolution_phase_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                    <option value="">Select a phase...</option>
-                    {% for cycle in idea.evolution_cycles %}
-                        {% for phase in cycle.phases %}
-                            <option value="{{ phase.id }}">{{ cycle.evolution_cycle.name }} - {{ phase.phase.name }}</option>
-                        {% endfor %}
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Name</label>
-                <input type="text" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea name="description" rows="3" required
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Type</label>
-                <select name="type_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">Select a type...</option>
-                    {% for type in requirement_types %}
-                    <option value="{{ type.id }}">{{ type.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Priority</label>
-                <select name="priority_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">Select a priority...</option>
-                    {% for priority in requirement_priorities %}
-                    <option value="{{ priority.id }}">{{ priority.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button type="button"
-                        onclick="document.getElementById('quickRequirementModal').classList.add('hidden')"
-                        class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Add Requirement
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+<!-- Modals -->
+{% include 'control_panel/modals/quick_requirement.html' %}
+{% include 'control_panel/modals/quick_tech_stack.html' %}
+{% include 'control_panel/modals/export.html' %}
 
-<!-- Tech Stack Modal -->
-<div id="techStackModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Add Tech Stack</h3>
-            <button onclick="closeTechStackModal()"
-                    class="text-gray-400 hover:text-gray-500">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <form id="techStackForm" method="POST" class="space-y-4">
-            <input type="hidden" id="phaseId" name="phase_id">
-            <div>
-                <label for="tech_stack_id" class="block text-sm font-medium text-gray-700 mb-2">Tech Stack</label>
-                <select id="tech_stack_id" name="tech_stack_id" required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">Select a tech stack</option>
-                    {% for tech_stack in tech_stacks %}
-                    <option value="{{ tech_stack.id }}">{{ tech_stack.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="closeTechStackModal()"
-                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Add Tech Stack
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+{% endblock %}
 
-<!-- Export Modal -->
-<div id="exportModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Export Idea Data</h3>
-            <button onclick="document.getElementById('exportModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-500">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <form method="POST" action="{{ url_for('ideas_export', id=idea.id) }}" class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <!-- Left Column -->
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Include</label>
-                        <div class="space-y-2">
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="include_evolution_cycles" value="true" checked
-                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="ml-2">Evolution Cycles</span>
-                            </label>
-                            <br>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="include_phases" value="true" checked
-                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="ml-2">Phases</span>
-                            </label>
-                            <br>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="include_requirements" value="true" checked
-                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="ml-2">Requirements</span>
-                            </label>
-                            <br>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="include_tech_stacks" value="true" checked
-                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="ml-2">Tech Stacks</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
-                        <select name="status_filter" multiple size="4"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="all" selected>All Statuses</option>
-                            {% for status in statuses %}
-                            <option value="{{ status.id }}">{{ status.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Right Column -->
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Evolution Cycles</label>
-                        <select name="evolution_cycle_filter" multiple size="4"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="all" selected>All Evolution Cycles</option>
-                            {% for cycle in idea.evolution_cycles %}
-                            <option value="{{ cycle.evolution_cycle.id }}">{{ cycle.evolution_cycle.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Phases</label>
-                        <select name="phase_filter" multiple size="4"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="all" selected>All Phases</option>
-                            {% for cycle in idea.evolution_cycles %}
-                                {% for phase in cycle.phases %}
-                                <option value="{{ phase.phase.id }}">{{ cycle.evolution_cycle.name }} - {{ phase.phase.name }}</option>
-                                {% endfor %}
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Requirement Types</label>
-                        <select name="requirement_type_filter" multiple size="4"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="all" selected>All Types</option>
-                            {% for type in requirement_types %}
-                            <option value="{{ type.id }}">{{ type.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-end space-x-3 mt-6">
-                <button type="button"
-                        onclick="document.getElementById('exportModal').classList.add('hidden')"
-                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Export YAML
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
+{% block extra_js %}
 <script>
-function openTechStackModal(phaseId) {
-    if (!phaseId) {
-        console.error('No phase ID provided');
-        return;
-    }
-    const phaseIdInput = document.getElementById('phaseId');
-    const modal = document.getElementById('techStackModal');
-    const form = document.getElementById('techStackForm');
-    
-    if (!phaseIdInput || !modal || !form) {
-        console.error('Required elements not found');
-        return;
-    }
-    
-    phaseIdInput.value = phaseId;
-    modal.classList.remove('hidden');
-    form.action = `/phases/${phaseId}/techstacks/add`;
-}
-
-function closeTechStackModal() {
-    const modal = document.getElementById('techStackModal');
-    const form = document.getElementById('techStackForm');
-    
-    if (modal) {
-        modal.classList.add('hidden');
-    }
-    if (form) {
-        form.reset();
-    }
-}
-
-function addTechStackToUI(phaseId, techStack) {
-    if (!phaseId || !techStack) {
-        console.error('Missing required parameters', { phaseId, techStack });
-        return;
-    }
-
-    const container = document.querySelector(`.tech-stacks-container[data-phase-id="${phaseId}"] .flex`);
-    if (!container) {
-        console.error('Tech stack container not found');
-        return;
-    }
-
-    // Remove "No tech stacks" message if it exists
-    const noTechStacksMsg = container.querySelector('.text-gray-500');
-    if (noTechStacksMsg) {
-        noTechStacksMsg.remove();
-    }
-
-    const techStackElement = document.createElement('div');
-    techStackElement.className = 'group relative tech-stack-item';
-    techStackElement.dataset.techStackId = techStack.id;
-    techStackElement.innerHTML = `
-        <div class="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
-            ${techStack.name}
-            <button onclick="removeTechStack('${phaseId}', '${techStack.id}')"
-                    class="text-red-500 hover:text-red-700">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="hidden group-hover:block absolute z-10 w-48 p-2 mt-2 text-sm bg-white rounded-lg shadow-lg border">
-            <p class="font-semibold">${techStack.name}</p>
-            <p class="text-gray-600">${techStack.description || ''}</p>
-            <div class="mt-1">
-                <p class="text-xs font-medium">Technologies:</p>
-                <ul class="list-disc list-inside text-xs text-gray-600">
-                    ${(techStack.technologies || []).map(tech => `<li>${tech.name}</li>`).join('')}
-                </ul>
+function showTechStackModal(phaseId) {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-layer-group text-2xl text-discovery-blue"></i>
+                    <h3 class="text-lg font-medium text-data-text">Add Tech Stack</h3>
+                </div>
+                <button onclick="this.closest('.fixed').remove()" 
+                        class="text-data-text/40 hover:text-data-text focus:outline-none">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+            <form method="POST" action="/phases/${phaseId}/techstacks/add" class="space-y-6">
+                <div>
+                    <label for="tech_stack_id" class="block text-sm font-medium text-data-text/60 mb-2">Select Tech Stack</label>
+                    <select name="tech_stack_id" id="tech_stack_id" required
+                            class="w-full rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white">
+                        <option value="">Select a tech stack...</option>
+                        {% for tech_stack in tech_stacks %}
+                        <option value="{{ tech_stack.id }}">{{ tech_stack.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" 
+                            onclick="this.closest('.fixed').remove()"
+                            class="inline-flex items-center gap-2 border border-interface-divider text-data-text hover:bg-algorithm-gray font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-data-text/20 focus:ring-offset-2 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 bg-intelligence-purple text-white hover:bg-intelligence-purple/90 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors">
+                        <i class="fas fa-plus"></i>
+                        Add Tech Stack
+                    </button>
+                </div>
+            </form>
         </div>
     `;
-    
-    container.appendChild(techStackElement);
-}
-
-document.getElementById('techStackForm')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const form = e.target;
-    const formData = new FormData(form);
-    
-    fetch(form.action, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const phaseId = document.getElementById('phaseId')?.value;
-            if (phaseId) {
-                addTechStackToUI(phaseId, data.tech_stack);
-                closeTechStackModal();
-            } else {
-                console.error('Phase ID not found');
-            }
-        } else {
-            alert(data.error || 'Failed to add tech stack');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while adding the tech stack');
-    });
-});
-
-function removeTechStack(phaseId, techStackId) {
-    if (!phaseId || !techStackId) {
-        console.error('Missing required parameters', { phaseId, techStackId });
-        return;
-    }
-
-    if (confirm('Are you sure you want to remove this tech stack?')) {
-        fetch(`/phases/${phaseId}/techstacks/${techStackId}/remove`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const techStackElement = document.querySelector(`.tech-stack-item[data-tech-stack-id="${techStackId}"]`);
-                if (techStackElement) {
-                    const container = techStackElement.closest('.flex');
-                    techStackElement.remove();
-                    
-                    // Check if there are no more tech stacks
-                    if (container && !container.querySelector('.tech-stack-item')) {
-                        container.innerHTML = '<span class="text-sm text-gray-500">No tech stacks assigned</span>';
-                    }
-                }
-            } else {
-                alert(data.error || 'Failed to remove tech stack');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while removing the tech stack');
-        });
-    }
+    document.body.appendChild(modal);
 }
 </script>
 {% endblock %}

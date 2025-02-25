@@ -1,0 +1,150 @@
+<!-- Quick Requirement Modal -->
+<div id="quickRequirementModal" class="hidden fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-6 border border-interface-divider w-[600px] shadow-lg rounded-lg bg-white">
+        <!-- Header -->
+        <div class="flex justify-between items-center pb-4 border-b border-interface-divider mb-6">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-tasks text-2xl text-intelligence-purple"></i>
+                <div>
+                    <h3 class="text-lg font-medium text-data-text">Add Requirement</h3>
+                    <p class="text-sm text-data-text/60">Create a new requirement for your idea's evolution cycle</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="document.getElementById('quickRequirementModal').classList.add('hidden')"
+                    class="text-data-text/40 hover:text-data-text focus:outline-none"
+                    aria-label="Close modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form action="{{ url_for('requirements_create') }}" method="POST" class="space-y-6">
+            <!-- Phase Selection -->
+            <div class="space-y-2">
+                <label for="idea_evolution_phase_id" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Select Phase
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <div class="relative">
+                    <select name="idea_evolution_phase_id" id="idea_evolution_phase_id" 
+                            class="w-full appearance-none rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white pl-3 pr-10 py-2" 
+                            required
+                            aria-required="true">
+                        <option value="">Select a phase...</option>
+                        {% for cycle in idea.evolution_cycles %}
+                            <optgroup label="{{ cycle.evolution_cycle.name }}">
+                                {% for phase in cycle.phases %}
+                                    <option value="{{ phase.id }}">{{ phase.phase.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-data-text/40">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-data-text/40">Choose the phase where this requirement belongs</p>
+            </div>
+
+            <!-- Name Field -->
+            <div class="space-y-2">
+                <label for="requirement_name" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Name
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <input type="text" 
+                       id="requirement_name"
+                       name="name" 
+                       required
+                       aria-required="true"
+                       placeholder="Enter requirement name"
+                       class="w-full rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white"
+                       minlength="3">
+                <p class="text-xs text-data-text/40">A clear, concise name for the requirement</p>
+            </div>
+
+            <!-- Description Field -->
+            <div class="space-y-2">
+                <label for="requirement_description" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Description
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <textarea id="requirement_description"
+                         name="description" 
+                         rows="4" 
+                         required
+                         aria-required="true"
+                         placeholder="Describe the requirement in detail..."
+                         class="w-full rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white"></textarea>
+                <p class="text-xs text-data-text/40">Provide detailed information about what needs to be accomplished</p>
+            </div>
+
+            <!-- Type Selection -->
+            <div class="space-y-2">
+                <label for="requirement_type" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Type
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <div class="relative">
+                    <select name="type_id" 
+                            id="requirement_type"
+                            required
+                            aria-required="true"
+                            class="w-full appearance-none rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white pl-3 pr-10 py-2">
+                        <option value="">Select a type...</option>
+                        {% for type in requirement_types %}
+                        <option value="{{ type.id }}">{{ type.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-data-text/40">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-data-text/40">Categorize the requirement by its type</p>
+            </div>
+
+            <!-- Priority Selection -->
+            <div class="space-y-2">
+                <label for="requirement_priority" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Priority
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <div class="relative">
+                    <select name="priority_id" 
+                            id="requirement_priority"
+                            required
+                            aria-required="true"
+                            class="w-full appearance-none rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white pl-3 pr-10 py-2">
+                        <option value="">Select a priority...</option>
+                        {% for priority in requirement_priorities %}
+                        <option value="{{ priority.id }}">{{ priority.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-data-text/40">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-data-text/40">Set the importance level of this requirement</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-3 pt-4 border-t border-interface-divider">
+                <button type="button"
+                        onclick="document.getElementById('quickRequirementModal').classList.add('hidden')"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-interface-divider text-data-text bg-white hover:bg-algorithm-gray rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-data-text/20 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-intelligence-purple text-white hover:bg-intelligence-purple/90 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-intelligence-purple transition-colors">
+                    <i class="fas fa-plus"></i>
+                    Add Requirement
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

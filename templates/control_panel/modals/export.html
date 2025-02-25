@@ -1,0 +1,174 @@
+<!-- Export Modal -->
+<div id="exportModal" class="hidden fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-6 border border-interface-divider w-[600px] shadow-lg rounded-lg bg-white">
+        <!-- Header -->
+        <div class="flex justify-between items-center pb-4 border-b border-interface-divider mb-6">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-file-export text-2xl text-intelligence-purple"></i>
+                <div>
+                    <h3 class="text-lg font-medium text-data-text">Export Idea</h3>
+                    <p class="text-sm text-data-text/60">Export your idea's data with custom filters</p>
+                </div>
+            </div>
+            <button type="button"
+                    onclick="document.getElementById('exportModal').classList.add('hidden')"
+                    class="text-data-text/40 hover:text-data-text focus:outline-none"
+                    aria-label="Close modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form action="{{ url_for('ideas_export', id=idea.id) }}" method="POST" class="space-y-6">
+            <!-- Format Selection -->
+            <div class="space-y-2">
+                <label for="export_format" class="flex items-center gap-1 text-sm font-medium text-data-text">
+                    Export Format
+                    <span class="text-status-error" aria-hidden="true">*</span>
+                    <span class="sr-only">(Required)</span>
+                </label>
+                <div class="relative">
+                    <select name="format" 
+                            id="export_format"
+                            required
+                            aria-required="true"
+                            class="w-full appearance-none rounded-md border-interface-divider focus:border-intelligence-purple focus:ring focus:ring-intelligence-purple/20 bg-cognitive-white pl-3 pr-10 py-2">
+                        <option value="json">JSON</option>
+                        <option value="yaml">YAML</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-data-text/40">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-data-text/40">Choose the format for your exported data</p>
+            </div>
+
+            <!-- Evolution Cycles Filter -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-data-text mb-2">Evolution Cycles</label>
+                <div class="space-y-3 max-h-48 overflow-y-auto pr-2">
+                    {% for cycle in idea.evolution_cycles %}
+                    <label class="flex items-center gap-3 p-3 border border-interface-divider rounded-md hover:bg-algorithm-gray transition-colors">
+                        <input type="checkbox" 
+                               name="evolution_cycles[]" 
+                               value="{{ cycle.id }}"
+                               checked
+                               class="rounded border-interface-divider text-intelligence-purple focus:ring-intelligence-purple">
+                        <div>
+                            <span class="text-sm text-data-text">{{ cycle.evolution_cycle.name }}</span>
+                            <div class="flex items-center gap-2 text-xs text-data-text/40">
+                                <span>{{ cycle.phases|length }} Phases</span>
+                                <span>•</span>
+                                <span>{{ cycle.completion_percentage }}% Complete</span>
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Phases Filter -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-data-text mb-2">Phases</label>
+                <div class="space-y-3 max-h-48 overflow-y-auto pr-2">
+                    {% for cycle in idea.evolution_cycles %}
+                        {% for phase in cycle.phases %}
+                        <label class="flex items-center gap-3 p-3 border border-interface-divider rounded-md hover:bg-algorithm-gray transition-colors">
+                            <input type="checkbox" 
+                                   name="phases[]" 
+                                   value="{{ phase.id }}"
+                                   checked
+                                   class="rounded border-interface-divider text-intelligence-purple focus:ring-intelligence-purple">
+                            <div>
+                                <span class="text-sm text-data-text">{{ phase.phase.name }}</span>
+                                <div class="flex items-center gap-2 text-xs text-data-text/40">
+                                    <span>{{ cycle.evolution_cycle.name }}</span>
+                                    <span>•</span>
+                                    <span>{{ phase.completion_percentage }}% Complete</span>
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Requirements Filter -->
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-data-text">Requirement Types</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for type in requirement_types %}
+                        <label class="inline-flex items-center gap-2 px-3 py-1.5 border border-interface-divider rounded-full hover:bg-algorithm-gray transition-colors">
+                            <input type="checkbox" 
+                                   name="requirement_types[]" 
+                                   value="{{ type.id }}"
+                                   checked
+                                   class="rounded-full border-interface-divider text-intelligence-purple focus:ring-intelligence-purple">
+                            <span class="text-sm text-data-text">{{ type.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-data-text">Requirement Status</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for status in requirement_statuses %}
+                        <label class="inline-flex items-center gap-2 px-3 py-1.5 border border-interface-divider rounded-full hover:bg-algorithm-gray transition-colors">
+                            <input type="checkbox" 
+                                   name="requirement_statuses[]" 
+                                   value="{{ status.id }}"
+                                   checked
+                                   class="rounded-full border-interface-divider text-intelligence-purple focus:ring-intelligence-purple">
+                            <span class="text-sm text-data-text">{{ status.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Include Content -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-data-text mb-2">Additional Content</label>
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 p-3 border border-interface-divider rounded-md hover:bg-algorithm-gray transition-colors">
+                        <input type="checkbox" 
+                               name="include_tech_stacks" 
+                               value="1" 
+                               checked
+                               class="rounded border-interface-divider text-intelligence-purple focus:ring-intelligence-purple">
+                        <div>
+                            <span class="text-sm text-data-text">Tech Stacks</span>
+                            <p class="text-xs text-data-text/40">Include technology stacks for each phase</p>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 border border-interface-divider rounded-md hover:bg-algorithm-gray transition-colors">
+                        <input type="checkbox" 
+                               name="include_stats" 
+                               value="1" 
+                               checked
+                               class="rounded border-interface-divider text-intelligence-purple focus:ring-intelligence-purple">
+                        <div>
+                            <span class="text-sm text-data-text">Statistics</span>
+                            <p class="text-xs text-data-text/40">Include completion rates and metrics</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-3 pt-4 border-t border-interface-divider">
+                <button type="button"
+                        onclick="document.getElementById('exportModal').classList.add('hidden')"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-interface-divider text-data-text bg-white hover:bg-algorithm-gray rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-data-text/20 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-intelligence-purple text-white hover:bg-intelligence-purple/90 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-intelligence-purple transition-colors">
+                    <i class="fas fa-file-export"></i>
+                    Export
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
