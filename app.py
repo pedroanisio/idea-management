@@ -598,6 +598,109 @@ def create_app():
             
         return redirect(url_for('evolutions_show', id=evolution_id))
 
+    @app.route('/ideas/<int:idea_id>/evolutions/<int:evolution_id>/phases/<int:phase_id>')
+    def evolution_phases_show(idea_id, evolution_id, phase_id):
+        # Get the IdeaEvolutionPhase with all necessary relationships
+        idea_phase = db.session.query(IdeaEvolutionPhase)\
+            .options(
+                db.joinedload(IdeaEvolutionPhase.phase),
+                db.joinedload(IdeaEvolutionPhase.status),
+                db.joinedload(IdeaEvolutionPhase.requirements)
+                .joinedload(Requirement.status),
+                db.joinedload(IdeaEvolutionPhase.requirements)
+                .joinedload(Requirement.requirement_type),
+                db.joinedload(IdeaEvolutionPhase.idea_evolution_cycle)
+                .joinedload(IdeaEvolutionCycle.idea),
+                db.joinedload(IdeaEvolutionPhase.idea_evolution_cycle)
+                .joinedload(IdeaEvolutionCycle.evolution_cycle)
+            )\
+            .join(IdeaEvolutionPhase.idea_evolution_cycle)\
+            .filter(
+                IdeaEvolutionPhase.phase_id == phase_id,
+                IdeaEvolutionCycle.idea_id == idea_id,
+                IdeaEvolutionCycle.evolution_cycle_id == evolution_id
+            )\
+            .first_or_404()
+
+        requirement_types = RequirementType.query.all()
+        
+        return render_template('evolutions/phases/show.html',
+                             idea_phase=idea_phase,
+                             requirement_types=requirement_types)
+
+    @app.route('/phases/<int:id>')
+    def phases_show(id):
+        phase = Phase.query.get_or_404(id)
+        # Get all idea evolution phases that use this phase
+        idea_evolution_phases = db.session.query(
+            IdeaEvolutionPhase.id,
+            Idea.id.label('idea_id'),
+            Idea.title.label('idea_name'),
+            EvolutionCycle.name.label('cycle_name'),
+            Phase.order.label('phase_order')
+        ).join(
+            IdeaEvolutionPhase.idea_evolution_cycle
+        ).join(
+            IdeaEvolutionCycle.idea
+        ).join(
+            IdeaEvolutionCycle.evolution_cycle
+        ).join(
+            IdeaEvolutionPhase.phase
+        ).filter(
+            Phase.id == id
+        ).all()
+        
+        return render_template('phases/show.html', 
+                             phase=phase,
+                             idea_evolution_phases=idea_evolution_phases)
+
+    @app.route('/phases/<int:id>/edit', methods=['GET', 'POST'])
+    def phases_edit(id):
+        phase = Phase.query.get_or_404(id)
+        if request.method == 'POST':
+            phase.name = request.form.get('name')
+            phase.description = request.form.get('description')
+            phase.order = request.form.get('order', type=int)
+            
+            # Update status if provided
+            status_id = request.form.get('status_id')
+            if status_id:
+                phase.status = Status.query.get(status_id)
+            
+            try:
+                db.session.commit()
+                flash('Phase updated successfully!', 'success')
+                return redirect(url_for('phases_show', id=phase.id))
+            except Exception as e:
+                db.session.rollback()
+                flash('Error updating phase. Please try again.', 'danger')
+                return redirect(url_for('phases_edit', id=phase.id))
+
+        statuses = Status.query.all()
+        return render_template('phases/edit.html', phase=phase, statuses=statuses)
+
+    @app.route('/phases/<int:id>/delete', methods=['POST'])
+    def phases_delete(id):
+        phase = Phase.query.get_or_404(id)
+        evolution_id = None
+        
+        # If this phase belongs to an evolution cycle, get its ID for redirect
+        idea_evolution_phase = IdeaEvolutionPhase.query.filter_by(phase_id=id).first()
+        if idea_evolution_phase:
+            evolution_id = idea_evolution_phase.idea_evolution_cycle.evolution_cycle.id
+        
+        try:
+            db.session.delete(phase)
+            db.session.commit()
+            flash('Phase deleted successfully!', 'success')
+            if evolution_id:
+                return redirect(url_for('evolutions_show', id=evolution_id))
+            return redirect(url_for('evolutions'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error deleting phase. Please try again.', 'danger')
+            return redirect(url_for('phases_show', id=id))
+
     # Requirements routes
     @app.route('/requirements')
     def requirements():
@@ -1063,20 +1166,31 @@ def create_app():
     # Control Panel routes
     @app.route('/ideas/<int:id>/control-panel')
     def idea_control_panel(id):
-        idea = Idea.query.get_or_404(id)
+        # Get idea with all necessary relationships loaded
+        idea = db.session.query(Idea)\
+            .options(
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.evolution_cycle),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.phases)
+                .joinedload(IdeaEvolutionPhase.phase),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.phases)
+                .joinedload(IdeaEvolutionPhase.requirements),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.tech_stacks),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.status),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.phases)
+                .joinedload(IdeaEvolutionPhase.status)
+            )\
+            .filter(Idea.id == id)\
+            .first_or_404()
+
         tech_stacks = TechStack.query.all()
         statuses = Status.query.all()
         requirement_types = RequirementType.query.all()
-        
-        # Get available phases for this idea's evolution cycles
-        available_phases = IdeaEvolutionPhase.query\
-            .join(IdeaEvolutionPhase.idea_evolution_cycle)\
-            .join(IdeaEvolutionCycle.idea)\
-            .join(IdeaEvolutionPhase.phase)\
-            .join(Phase.evolution_cycle)\
-            .filter(IdeaEvolutionCycle.idea_id == id)\
-            .order_by(EvolutionCycle.name, Phase.order)\
-            .all()
 
         # Calculate statistics for this idea
         total_cycles = len(idea.evolution_cycles)
@@ -1116,7 +1230,6 @@ def create_app():
                              tech_stacks=tech_stacks,
                              statuses=statuses,
                              requirement_types=requirement_types,
-                             available_phases=available_phases,
                              stats=stats)
 
     @app.route('/ideas/<int:id>/tech-stacks/manage', methods=['POST'])

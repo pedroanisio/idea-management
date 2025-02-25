@@ -1,0 +1,142 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ idea_phase.phase.name }} - {{ idea_phase.idea_evolution_cycle.evolution_cycle.name }} - {{ idea_phase.idea_evolution_cycle.idea.title }} - Idea Management{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-gray-600">
+        <ol class="list-none p-0 inline-flex items-center space-x-2">
+            <li>
+                <a href="{{ url_for('ideas_show', id=idea_phase.idea_evolution_cycle.idea.id) }}" class="hover:text-blue-600">
+                    {{ idea_phase.idea_evolution_cycle.idea.title }}
+                </a>
+            </li>
+            <li class="text-gray-500">/</li>
+            <li>
+                <a href="{{ url_for('evolutions_show', id=idea_phase.idea_evolution_cycle.evolution_cycle.id) }}" class="hover:text-blue-600">
+                    {{ idea_phase.idea_evolution_cycle.evolution_cycle.name }}
+                </a>
+            </li>
+            <li class="text-gray-500">/</li>
+            <li class="text-gray-800">{{ idea_phase.phase.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">{{ idea_phase.phase.name }}</h1>
+                <p class="text-gray-600 mt-2">{{ idea_phase.phase.description }}</p>
+            </div>
+            <div class="flex space-x-4">
+                <span class="px-3 py-1 rounded-full text-sm font-medium
+                    {% if idea_phase.status.name == 'Completed' %}bg-green-100 text-green-800
+                    {% elif idea_phase.status.name == 'In Progress' %}bg-blue-100 text-blue-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ idea_phase.status.name }}
+                </span>
+                <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
+                    Order: {{ idea_phase.order }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Requirements Section -->
+        <div class="mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Requirements</h2>
+                <button onclick="document.getElementById('quickRequirementModal').classList.remove('hidden')"
+                        class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                    <i class="fas fa-plus mr-1"></i> Add Requirement
+                </button>
+            </div>
+            
+            {% if idea_phase.requirements %}
+            <div class="grid grid-cols-1 gap-4">
+                {% for requirement in idea_phase.requirements|sort(attribute='created_at', reverse=true) %}
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-semibold text-gray-800">{{ requirement.name }}</h3>
+                                <a href="{{ url_for('requirements_edit', id=requirement.id) }}" 
+                                   class="text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                            <p class="text-gray-600 mt-1">{{ requirement.description }}</p>
+                            {% if requirement.type %}
+                            <span class="inline-block mt-2 px-2 py-1 bg-purple-100 text-purple-800 text-sm rounded">
+                                {{ requirement.type.name }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <span class="px-2 py-1 text-sm rounded-full
+                            {% if requirement.status.name == 'Completed' %}bg-green-100 text-green-800
+                            {% elif requirement.status.name == 'In Progress' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ requirement.status.name }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500">No requirements added yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Requirement Modal -->
+<div id="quickRequirementModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Add Requirement</h3>
+            <button onclick="document.getElementById('quickRequirementModal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-500">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('requirements_create') }}">
+            <input type="hidden" name="idea_evolution_phase_id" value="{{ idea_phase.id }}">
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" name="name" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea name="description" rows="3" required
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Type</label>
+                <select name="requirement_type_id" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    {% for type in requirement_types %}
+                    <option value="{{ type.id }}">{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button"
+                        onclick="document.getElementById('quickRequirementModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Add Requirement
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

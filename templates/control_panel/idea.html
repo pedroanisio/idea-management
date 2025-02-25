@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}{{ idea.name }} Control Panel - Idea Management{% endblock %}
+{% block title %}{{ idea.title }} Control Panel - Idea Management{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -8,7 +8,7 @@
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">{{ idea.name }}</h1>
+                <h1 class="text-2xl font-bold text-gray-900">{{ idea.title }}</h1>
                 <p class="text-gray-600 mt-1">{{ idea.description }}</p>
             </div>
             <div class="flex space-x-2">
@@ -16,6 +16,11 @@
                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                     <i class="fas fa-edit mr-1"></i> Edit Idea
                 </a>
+                <button onclick="document.getElementById('exportModal').classList.remove('hidden')"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-file-export mr-2"></i>
+                    Export
+                </button>
             </div>
         </div>
         
@@ -34,7 +39,7 @@
                 <p class="mt-1 text-xl font-semibold">
                     {% set req_count = namespace(total=0) %}
                     {% for cycle in idea.evolution_cycles %}
-                        {% for phase in cycle.evolution_cycle.phases %}
+                        {% for phase in cycle.phases %}
                             {% set req_count.total = req_count.total + phase.requirements|length %}
                         {% endfor %}
                     {% endfor %}
@@ -77,44 +82,56 @@
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4">Evolution Cycles</h2>
         <div class="space-y-6">
-            {% for cycle in idea.evolution_cycles|sort(attribute='order') %}
+            {% for idea_cycle in idea.evolution_cycles|sort(attribute='order') %}
             <div class="border rounded-lg p-4">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">{{ cycle.evolution_cycle.name }}</h3>
+                    <h3 class="text-lg font-semibold">{{ idea_cycle.evolution_cycle.name }}</h3>
                     <span class="px-2 py-1 text-sm rounded-full 
-                        {% if cycle.evolution_cycle.status.name == 'Completed' %}bg-green-100 text-green-800
-                        {% elif cycle.evolution_cycle.status.name == 'In Progress' %}bg-blue-100 text-blue-800
+                        {% if idea_cycle.status.name == 'Completed' %}bg-green-100 text-green-800
+                        {% elif idea_cycle.status.name == 'In Progress' %}bg-blue-100 text-blue-800
                         {% else %}bg-gray-100 text-gray-800{% endif %}">
-                        {{ cycle.evolution_cycle.status.name }}
+                        {{ idea_cycle.status.name }}
                     </span>
                 </div>
                 
                 <!-- Phases -->
                 <div class="space-y-4">
-                    {% for phase in cycle.evolution_cycle.phases|sort(attribute='order') %}
+                    {% for idea_phase in idea_cycle.phases|sort(attribute='order') %}
                     <div class="bg-gray-50 rounded p-3">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h4 class="font-medium">{{ phase.name }}</h4>
-                                <p class="text-sm text-gray-600">{{ phase.requirements|length }} requirements</p>
+                                <a href="{{ url_for('evolution_phases_show', 
+                                                   idea_id=idea.id,
+                                                   evolution_id=idea_cycle.evolution_cycle.id,
+                                                   phase_id=idea_phase.phase.id) }}" 
+                                   class="text-lg font-semibold hover:text-blue-600">
+                                    {{ idea_phase.phase.name }}
+                                </a>
+                                <p class="text-sm text-gray-600">{{ idea_phase.phase.description|truncate(100) }}</p>
                             </div>
-                            <span class="px-2 py-1 text-sm rounded-full 
-                                {% if phase.status.name == 'Completed' %}bg-green-100 text-green-800
-                                {% elif phase.status.name == 'In Progress' %}bg-blue-100 text-blue-800
-                                {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                {{ phase.status.name }}
-                            </span>
+                            <div class="flex items-center space-x-4">
+                                <span class="px-2 py-1 text-sm rounded-full 
+                                    {% if idea_phase.status.name == 'Completed' %}bg-green-100 text-green-800
+                                    {% elif idea_phase.status.name == 'In Progress' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ idea_phase.status.name }}
+                                </span>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">Requirements</p>
+                                    <p class="font-semibold">{{ idea_phase.requirements|length }}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 
                 <!-- Tech Stacks -->
-                {% if cycle.tech_stacks %}
+                {% if idea_cycle.tech_stacks %}
                 <div class="mt-4">
                     <h4 class="font-medium text-gray-700 mb-2">Tech Stack</h4>
                     <div class="flex flex-wrap gap-2">
-                        {% for stack in cycle.tech_stacks %}
+                        {% for stack in idea_cycle.tech_stacks %}
                         <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
                             {{ stack.name }}
                         </span>
@@ -155,10 +172,10 @@
                     <label class="block text-sm font-medium text-gray-700">Phase</label>
                     <select name="phase_id" required
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        {% for cycle in idea.evolution_cycles %}
-                            <optgroup label="{{ cycle.evolution_cycle.name }}">
-                                {% for phase in cycle.evolution_cycle.phases %}
-                                    <option value="{{ phase.id }}">{{ phase.name }}</option>
+                        {% for idea_cycle in idea.evolution_cycles %}
+                            <optgroup label="{{ idea_cycle.evolution_cycle.name }}">
+                                {% for idea_phase in idea_cycle.phases %}
+                                    <option value="{{ idea_phase.id }}">{{ idea_phase.phase.name }}</option>
                                 {% endfor %}
                             </optgroup>
                         {% endfor %}
@@ -225,6 +242,116 @@
                         Save Changes
                     </button>
                 </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Export Idea Data</h3>
+            <button onclick="document.getElementById('exportModal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-500">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('ideas_export', id=idea.id) }}" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Left Column -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Include</label>
+                        <div class="space-y-2">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="include_evolution_cycles" value="true" checked
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2">Evolution Cycles</span>
+                            </label>
+                            <br>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="include_phases" value="true" checked
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2">Phases</span>
+                            </label>
+                            <br>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="include_requirements" value="true" checked
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2">Requirements</span>
+                            </label>
+                            <br>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="include_tech_stacks" value="true" checked
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2">Tech Stacks</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
+                        <select name="status_filter" multiple size="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="all" selected>All Statuses</option>
+                            {% for status in statuses %}
+                            <option value="{{ status.id }}">{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Evolution Cycles</label>
+                        <select name="evolution_cycle_filter" multiple size="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="all" selected>All Evolution Cycles</option>
+                            {% for cycle in idea.evolution_cycles %}
+                            <option value="{{ cycle.evolution_cycle.id }}">{{ cycle.evolution_cycle.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phases</label>
+                        <select name="phase_filter" multiple size="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="all" selected>All Phases</option>
+                            {% for cycle in idea.evolution_cycles %}
+                                {% for phase in cycle.phases %}
+                                <option value="{{ phase.phase.id }}">{{ cycle.evolution_cycle.name }} - {{ phase.phase.name }}</option>
+                                {% endfor %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Requirement Types</label>
+                        <select name="requirement_type_filter" multiple size="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="all" selected>All Types</option>
+                            {% for type in requirement_types %}
+                            <option value="{{ type.id }}">{{ type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button"
+                        onclick="document.getElementById('exportModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Export YAML
+                </button>
             </div>
         </form>
     </div>

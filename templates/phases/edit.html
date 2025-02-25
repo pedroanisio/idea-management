@@ -28,6 +28,18 @@
             </div>
 
             <div>
+                <label for="status_id" class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status_id" id="status_id" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    {% for status in statuses %}
+                    <option value="{{ status.id }}" {% if phase.status and phase.status.id == status.id %}selected{% endif %}>
+                        {{ status.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
                 <label for="requirements" class="block text-sm font-medium text-gray-700">Requirements</label>
                 <select name="requirements" id="requirements" multiple
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
