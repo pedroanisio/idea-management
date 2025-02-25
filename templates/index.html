@@ -1,69 +1,151 @@
 {% extends 'layouts/base.html' %}
-{% from 'layouts/components/cards.html' import metric_card, data_card %}
+{% from 'layouts/components/cards.html' import metric_card, data_card, feature_card %}
 {% from 'layouts/components/badges.html' import status_badge %}
 {% from 'layouts/components/buttons.html' import action_button %}
 
 {% block title %}Dashboard - Idea Management{% endblock %}
 
 {% block content %}
-<div class="container mx-auto">
-    <div class="section-header">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <h1 class="mb-0">Idea Management Dashboard</h1>
+<div class="container mx-auto px-4 py-8">
+    <!-- Header Section -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-chart-line text-2xl text-intelligence-purple"></i>
+            <h1 class="text-2xl font-bold text-data-text">Dashboard Overview</h1>
+        </div>
+        <div class="flex gap-3">
+            {{ action_button('New Idea', url_for('ideas_create'), icon='fas fa-lightbulb') }}
+        </div>
     </div>
-    
-    <div class="metric-grid mb-section">
-        {{ metric_card('Ideas', ideas_count|default(0), chart_type='trend') }}
-        {{ metric_card('Requirements', requirements_count|default(0), chart_type='trend') }}
-        {{ metric_card('Evolution Cycles', evolutions_count|default(0), chart_type='trend') }}
-        {{ metric_card('Tech Stacks', techstacks_count|default(0), chart_type='distribution') }}
+
+    <!-- Metrics Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {{ metric_card(
+            'Total Ideas',
+            ideas|length,
+            subtitle='Active ideas in the system',
+            trend_value='+3',
+            trend_label='from last week',
+            classes='relative overflow-hidden'
+        ) }}
+        
+        {{ metric_card(
+            'Evolution Cycles',
+            evolution_cycles|length,
+            subtitle='Ongoing cycles',
+            trend_value='+1',
+            trend_label='from last month',
+            classes='relative overflow-hidden'
+        ) }}
+        
+        {{ metric_card(
+            'Tech Stacks',
+            tech_stacks|length,
+            subtitle='Technology stacks',
+            trend_value='+2',
+            trend_label='new this week',
+            classes='relative overflow-hidden'
+        ) }}
+        
+        {{ metric_card(
+            'Recent Activities',
+            activities|length,
+            subtitle='Updates in last 24h',
+            trend_value='+5',
+            trend_label='vs yesterday',
+            classes='relative overflow-hidden'
+        ) }}
     </div>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {% call data_card('Recent Activity') %}
-            <div class="space-y-4">
-                {% if activities %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Recent Ideas Section -->
+        <div class="lg:col-span-2">
+            <div class="bg-cognitive-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-data-text">Recent Ideas</h2>
+                    <a href="{{ url_for('ideas') }}" class="text-intelligence-purple hover:text-intelligence-purple/80">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                <div class="space-y-4">
+                    {% for idea in ideas[:5] %}
+                    <div class="bg-algorithm-gray rounded-lg p-4 hover:bg-algorithm-gray/80 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start gap-3">
+                                <div class="mt-1">
+                                    <i class="fas fa-lightbulb text-intelligence-purple"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium text-data-text">{{ idea.title }}</h3>
+                                    <p class="text-sm text-data-text/60 mt-1">{{ idea.description|truncate(100) }}</p>
+                                    <div class="flex items-center gap-3 mt-2">
+                                        <span class="text-xs text-data-text/60">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ idea.created_at.strftime('%B %d, %Y') }}
+                                        </span>
+                                        {% if idea.status %}
+                                        {{ status_badge(idea.status.name, idea.status.name|lower) }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('ideas_show', id=idea.id) }}" 
+                               class="text-intelligence-purple hover:text-intelligence-purple/80">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Activity -->
+        <div class="space-y-6">
+            <!-- Quick Actions -->
+            <div class="bg-cognitive-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-data-text mb-4">Quick Actions</h2>
+                <div class="grid grid-cols-1 gap-3">
+                    {{ action_button('New Idea', url_for('ideas_create'), icon='fas fa-lightbulb', classes='bg-intelligence-purple/10 text-intelligence-purple hover:bg-intelligence-purple/20') }}
+                    
+                    {{ action_button('New Evolution Cycle', url_for('evolutions_create'), icon='fas fa-sync', classes='bg-discovery-blue/10 text-discovery-blue hover:bg-discovery-blue/20') }}
+                    
+                    {{ action_button('New Tech Stack', url_for('techstacks_create'), icon='fas fa-layer-group', classes='bg-performance-green/10 text-performance-green hover:bg-performance-green/20') }}
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-cognitive-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-data-text mb-4">Recent Activity</h2>
+                <div class="space-y-4">
+                    {% set current_date = None %}
                     {% for activity in activities %}
-                        <div class="flex items-start space-x-3 pb-4 border-b border-interface-divider last:border-b-0">
+                        {% set activity_date = activity.created_at.strftime('%Y-%m-%d') %}
+                        {% if activity_date != current_date %}
+                            {% set current_date = activity_date %}
+                            <div class="text-sm text-data-text/60 font-medium pt-2 first:pt-0">
+                                {{ activity.created_at.strftime('%B %d, %Y') }}
+                            </div>
+                        {% endif %}
+                        <div class="flex items-start gap-3 pl-2">
                             {% if activity.type == 'idea' %}
-                                <svg class="w-5 h-5 text-intelligence-purple mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
+                                <i class="fas fa-lightbulb text-intelligence-purple mt-1"></i>
+                            {% elif activity.type == 'evolution' %}
+                                <i class="fas fa-sync text-discovery-blue mt-1"></i>
                             {% elif activity.type == 'requirement' %}
-                                <svg class="w-5 h-5 text-performance-green mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                </svg>
+                                <i class="fas fa-tasks text-performance-green mt-1"></i>
                             {% else %}
-                                <svg class="w-5 h-5 text-innovation-orange mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                </svg>
+                                <i class="fas fa-star text-data-text/60 mt-1"></i>
                             {% endif %}
-                            <div class="flex-1">
-                                <p class="primary-data">{{ activity.description }}</p>
-                                <p class="tertiary-data">{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <div>
+                                <p class="text-sm text-data-text">{{ activity.description }}</p>
+                                <p class="text-xs text-data-text/60">{{ activity.created_at.strftime('%H:%M') }}</p>
                             </div>
                         </div>
                     {% endfor %}
-                {% else %}
-                    <p class="secondary-data">No recent activity</p>
-                {% endif %}
+                </div>
             </div>
-        {% endcall %}
-
-        {% call data_card('Quick Actions') %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {{ action_button('New Idea', 'experiment', icon='experiment', href=url_for('ideas_create')) }}
-                
-                {{ action_button('New Phase', 'optimize', icon='optimize', 
-                    href=url_for('evolution_phases_create', id=evolution_cycles[0].id) if evolution_cycles else '#') }}
-                
-                {{ action_button('New Tech Stack', 'experiment', icon='experiment', href=url_for('techstacks_create')) }}
-                
-                {{ action_button('New Requirement', 'optimize', icon='optimize', href=url_for('requirements_create')) }}
-            </div>
-        {% endcall %}
+        </div>
     </div>
 </div>
 {% endblock %}
