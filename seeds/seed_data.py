@@ -93,7 +93,7 @@ def seed_database():
         
         # Commit changes to get IDs
         db.session.commit()
-        
+
         # Get references to created objects
         in_progress_status = Status.query.filter_by(name="In Progress").first()
         new_status = Status.query.filter_by(name="New").first()
@@ -139,10 +139,6 @@ def seed_database():
         db.session.add_all([idea_sdlc, idea_env])
         db.session.commit()
 
-        # Add tech stack to idea evolution cycles
-        idea_sdlc.tech_stacks.append(tech_stack)
-        idea_env.tech_stacks.append(tech_stack)
-        
         # Create phases for SDLC evolution
         sdlc_phases = [
             Phase(name="Proof of Concept", description="Test the idea", order=1, status_id=in_progress_status.id, evolution_cycle_id=sdlc_evolution.id),
@@ -164,13 +160,16 @@ def seed_database():
         db.session.commit()
 
         # Create IdeaEvolutionPhases for SDLC
-        for phase in sdlc_phases:
+        for i, phase in enumerate(sdlc_phases):
             idea_phase = IdeaEvolutionPhase(
                 idea_evolution_cycle_id=idea_sdlc.id,
                 phase_id=phase.id,
                 status_id=phase.status_id,
                 order=phase.order
             )
+            # Assign tech stack to development phase
+            if phase.name == "Minimum Viable Product":
+                idea_phase.tech_stacks.append(tech_stack)
             db.session.add(idea_phase)
 
         # Create IdeaEvolutionPhases for Environments

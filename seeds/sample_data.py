@@ -85,6 +85,61 @@ def seed_sample_data():
             db.session.add_all(ai_technologies)
             db.session.commit()
 
+        # Create technology versions
+        versions_data = {
+            'Python': [
+                ('3.11', datetime(2022, 10, 24), datetime(2027, 10, 24), True),
+                ('3.12', datetime(2023, 10, 2), datetime(2028, 10, 2), False)
+            ],
+            'React': [
+                ('18.2.0', datetime(2022, 6, 14), None, True),
+                ('18.3.0', datetime(2024, 5, 1), None, False)
+            ],
+            'TensorFlow': [
+                ('2.15.0', datetime(2023, 11, 1), None, True),
+                ('3.0.0', datetime(2024, 6, 1), None, False)
+            ],
+            'Material UI': [
+                ('5.15.0', datetime(2023, 12, 1), None, True),
+                ('6.0.0', datetime(2024, 3, 1), None, False)
+            ],
+            'JavaScript': [
+                ('ES2022', datetime(2022, 6, 1), None, True),
+                ('ES2023', datetime(2023, 6, 1), None, False)
+            ]
+        }
+
+        tech_versions = []
+        version_aggregates = []
+
+        for tech_name, versions in versions_data.items():
+            tech = Technology.query.filter_by(name=tech_name).first()
+            if tech:
+                for version_info in versions:
+                    version = TechnologyVersion(
+                        technology_id=tech.id,
+                        version=version_info[0],
+                        release_date=version_info[1].date(),
+                        end_of_life_date=version_info[2].date() if version_info[2] else None,
+                        is_default=version_info[3]
+                    )
+                    tech_versions.append(version)
+
+        db.session.add_all(tech_versions)
+        db.session.commit()
+
+        # Create version aggregates for default versions
+        for version in tech_versions:
+            if version.is_default:
+                aggregate = TechnologyVersionAggregate(
+                    technology_id=version.technology_id,
+                    version_id=version.id
+                )
+                version_aggregates.append(aggregate)
+
+        db.session.add_all(version_aggregates)
+        db.session.commit()
+
         # Create AI Chat App Idea
         ai_chat_idea = Idea(
             title="AI Chat Application",
@@ -97,116 +152,37 @@ def seed_sample_data():
         db.session.add(ai_chat_idea)
         db.session.commit()
 
-        # Create Tech Stack for AI Chat
-        ai_technologies = [
-            python,
-            react,
-            tensorflow,
-            material_ui
-        ]
-        db.session.add_all(ai_technologies)
-        db.session.commit()
-
-        # Create technology versions
-        python_versions = [
-            TechnologyVersion(
-                technology_id=python.id,  # Python
-                version="3.11",
-                release_date=datetime(2022, 10, 24).date(),
-                end_of_life_date=datetime(2027, 10, 24).date(),
-                is_default=True
-            ),
-            TechnologyVersion(
-                technology_id=python.id,  # Python
-                version="3.12",
-                release_date=datetime(2023, 10, 2).date(),
-                end_of_life_date=datetime(2028, 10, 2).date(),
-                is_default=False
-            )
-        ]
-
-        react_versions = [
-            TechnologyVersion(
-                technology_id=react.id,  # React
-                version="18.2.0",
-                release_date=datetime(2022, 6, 14).date(),
-                end_of_life_date=None,
-                is_default=True
-            ),
-            TechnologyVersion(
-                technology_id=react.id,  # React
-                version="18.3.0",
-                release_date=datetime(2024, 5, 1).date(),
-                end_of_life_date=None,
-                is_default=False
-            )
-        ]
-
-        tensorflow_versions = [
-            TechnologyVersion(
-                technology_id=tensorflow.id,  # TensorFlow
-                version="2.15.0",
-                release_date=datetime(2023, 11, 1).date(),
-                end_of_life_date=None,
-                is_default=True
-            ),
-            TechnologyVersion(
-                technology_id=tensorflow.id,  # TensorFlow
-                version="3.0.0",
-                release_date=datetime(2024, 6, 1).date(),
-                end_of_life_date=None,
-                is_default=False
-            )
-        ]
-
-        mui_versions = [
-            TechnologyVersion(
-                technology_id=material_ui.id,  # Material UI
-                version="5.15.0",
-                release_date=datetime(2023, 12, 1).date(),
-                end_of_life_date=None,
-                is_default=True
-            ),
-            TechnologyVersion(
-                technology_id=material_ui.id,  # Material UI
-                version="6.0.0",
-                release_date=datetime(2024, 3, 1).date(),
-                end_of_life_date=None,
-                is_default=False
-            )
-        ]
-
-        all_versions = python_versions + react_versions + tensorflow_versions + mui_versions
-        db.session.add_all(all_versions)
-        db.session.commit()
-
-        # Create version aggregates
-        version_aggregates = []
-        for version in all_versions:
-            if version.is_default:  # Only add default versions to the tech stack
-                aggregate = TechnologyVersionAggregate(
-                    technology_id=version.technology_id,
-                    version_id=version.id
-                )
-                version_aggregates.append(aggregate)
-        db.session.add_all(version_aggregates)
-        db.session.commit()
-
-        # Create AI tech stack
-        ai_tech_stack = TechStack(
-            name="AI Chat Tech Stack",
-            description="Modern tech stack for AI-powered chat application",
+        # Create tech stacks for different components
+        frontend_stack = TechStack(
+            name="React Frontend",
+            description="Modern frontend with React and Material UI",
             type_id=framework_type.id
         )
+        db.session.add(frontend_stack)
+        db.session.commit()
         
-        # Add technologies and their default versions to the stack
-        for tech in ai_technologies:
-            ai_tech_stack.technologies.append(tech)
+        frontend_stack.technologies.extend([react, javascript, material_ui])
         
-        for aggregate in version_aggregates:
-            ai_tech_stack.technology_versions.append(aggregate)
-            
-        db.session.add(ai_tech_stack)
+        # Add default version aggregates to frontend stack
+        frontend_versions = [agg for agg in version_aggregates 
+                           if agg.technology in [react, javascript, material_ui]]
+        frontend_stack.technology_versions.extend(frontend_versions)
+        
+        backend_stack = TechStack(
+            name="Python Backend",
+            description="AI-powered backend with Python and TensorFlow",
+            type_id=framework_type.id
+        )
+        db.session.add(backend_stack)
+        db.session.commit()
+        
+        backend_stack.technologies.extend([python, tensorflow])
+        
+        # Add default version aggregates to backend stack
+        backend_versions = [agg for agg in version_aggregates 
+                          if agg.technology in [python, tensorflow]]
+        backend_stack.technology_versions.extend(backend_versions)
+        
         db.session.commit()
 
         # Create Evolution Cycles
@@ -237,9 +213,52 @@ def seed_sample_data():
         db.session.add_all([idea_dev, idea_feature])
         db.session.commit()
 
-        # Add tech stack to idea evolution cycles
-        idea_dev.tech_stacks.append(ai_tech_stack)
-        idea_feature.tech_stacks.append(ai_tech_stack)
+        # Create phases for AI Chat App
+        phases_data = [
+            {
+                "name": "Frontend Development",
+                "description": "Implement the user interface and chat components",
+                "order": 1,
+                "status": in_progress_status,
+                "tech_stacks": [frontend_stack]
+            },
+            {
+                "name": "Backend Development",
+                "description": "Implement the AI chat engine and API",
+                "order": 2,
+                "status": new_status,
+                "tech_stacks": [backend_stack]
+            },
+            {
+                "name": "Integration",
+                "description": "Connect frontend and backend components",
+                "order": 3,
+                "status": new_status,
+                "tech_stacks": [frontend_stack, backend_stack]
+            }
+        ]
+        
+        # Create phases and associate tech stacks
+        for phase_data in phases_data:
+            phase = Phase(
+                name=phase_data["name"],
+                description=phase_data["description"],
+                order=phase_data["order"],
+                evolution_cycle_id=development_cycle.id
+            )
+            db.session.add(phase)
+            db.session.commit()
+            
+            idea_phase = IdeaEvolutionPhase(
+                idea_evolution_cycle_id=idea_dev.id,
+                phase_id=phase.id,
+                status_id=phase_data["status"].id,
+                order=phase_data["order"]
+            )
+            idea_phase.tech_stacks.extend(phase_data["tech_stacks"])
+            db.session.add(idea_phase)
+        
+        db.session.commit()
 
         # Create Development Phases
         dev_phases = [

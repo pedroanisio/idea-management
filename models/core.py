@@ -2,12 +2,6 @@ from datetime import datetime
 from extensions import db
 
 # Association tables
-tech_stack_association = db.Table('tech_stack_association',
-    db.Column('tech_stack_id', db.Integer, db.ForeignKey('tech_stacks.id')),
-    db.Column('idea_evolution_cycle_id', db.Integer, db.ForeignKey('idea_evolution_cycles.id')),
-    db.PrimaryKeyConstraint('tech_stack_id', 'idea_evolution_cycle_id')
-)
-
 tech_stack_technology_version = db.Table('tech_stack_technology_version',
     db.Column('tech_stack_id', db.Integer, db.ForeignKey('tech_stacks.id')),
     db.Column('technology_version_id', db.Integer, db.ForeignKey('technology_version_aggregates.id')),
@@ -18,6 +12,12 @@ tech_stack_technology_association = db.Table('tech_stack_technology_association'
     db.Column('tech_stack_id', db.Integer, db.ForeignKey('tech_stacks.id')),
     db.Column('technology_id', db.Integer, db.ForeignKey('technologies.id')),
     db.PrimaryKeyConstraint('tech_stack_id', 'technology_id')
+)
+
+tech_stack_phase_association = db.Table('tech_stack_phase_association',
+    db.Column('tech_stack_id', db.Integer, db.ForeignKey('tech_stacks.id')),
+    db.Column('idea_evolution_phase_id', db.Integer, db.ForeignKey('idea_evolution_phases.id')),
+    db.PrimaryKeyConstraint('tech_stack_id', 'idea_evolution_phase_id')
 )
 
 class Status(db.Model):
@@ -85,8 +85,6 @@ class IdeaEvolutionCycle(db.Model):
     evolution_cycle = db.relationship('EvolutionCycle', back_populates='ideas')
     status = db.relationship('Status', backref='idea_evolution_cycles')
     phases = db.relationship('IdeaEvolutionPhase', back_populates='idea_evolution_cycle', lazy=True)
-    tech_stacks = db.relationship('TechStack', secondary=tech_stack_association,
-                                back_populates='idea_evolution_cycles')
 
     def __repr__(self):
         return f'<IdeaEvolutionCycle {self.id}>'
@@ -132,6 +130,29 @@ class IdeaEvolutionPhase(db.Model):
     phase = db.relationship('Phase', back_populates='idea_evolution_phases')
     status = db.relationship('Status', backref='idea_evolution_phases')
     requirements = db.relationship('Requirement', back_populates='idea_evolution_phase', lazy=True)
+    tech_stacks = db.relationship('TechStack', secondary=tech_stack_phase_association,
+                                back_populates='idea_evolution_phases')
+
+    def validate_tech_stacks(self):
+        """Validate tech stack assignments for the phase"""
+        if not self.tech_stacks:
+            return True
+            
+        # Ensure no duplicate tech stacks
+        tech_stack_ids = [ts.id for ts in self.tech_stacks]
+        if len(tech_stack_ids) != len(set(tech_stack_ids)):
+            raise ValueError("Duplicate tech stacks are not allowed")
+            
+        # Ensure tech stacks are compatible
+        tech_types = {}
+        for ts in self.tech_stacks:
+            if ts.type_id in tech_types:
+                # Allow multiple of same type only for certain types
+                if ts.type.name not in ["Framework", "Library"]:
+                    raise ValueError(f"Multiple tech stacks of type {ts.type.name} are not allowed")
+            tech_types[ts.type_id] = ts
+            
+        return True
 
     def __repr__(self):
         return f'<IdeaEvolutionPhase {self.id}>'
@@ -201,7 +222,7 @@ class TechStack(db.Model):
     
     # Relationships
     type = db.relationship('TechnologyType', backref=db.backref('tech_stacks', lazy=True))
-    idea_evolution_cycles = db.relationship('IdeaEvolutionCycle', secondary=tech_stack_association,
+    idea_evolution_phases = db.relationship('IdeaEvolutionPhase', secondary=tech_stack_phase_association,
                                           back_populates='tech_stacks')
     technologies = db.relationship('Technology', secondary=tech_stack_technology_association,
                                  backref=db.backref('tech_stacks', lazy=True))

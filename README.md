@@ -74,6 +74,56 @@ Idea Management is a Flask-based web application that helps you organize and tra
 - **RequirementPriority**: Defines priority levels
 - **TechnologyType**: Classifies technologies and tech stacks
 
+## Features
+
+### Idea Management
+- Create and manage project ideas
+- Track idea status and progress
+- Organize ideas through evolution cycles and phases
+- Manage requirements with types and priorities
+
+### Technology Stack Management
+- Define technology stacks for each phase
+- Track technology versions and compatibility
+- Manage technology relationships and dependencies
+- Validate tech stack assignments based on type rules
+
+### Evolution Cycles
+- Create development cycles for ideas
+- Define ordered phases within cycles
+- Track progress through status updates
+- Associate tech stacks with specific phases
+
+### Requirements
+- Create and manage requirements
+- Categorize by type and priority
+- Associate with specific phases
+- Track requirement status
+
+### Export/Import
+- Export idea data to YAML format
+- Include/exclude specific components:
+  - Evolution cycles
+  - Phases
+  - Requirements
+  - Tech stacks
+- Filter exports by:
+  - Evolution cycles
+  - Phases
+  - Requirement types
+
+## Entity Relationships
+
+The application uses a sophisticated entity relationship model that connects ideas, evolution cycles, phases, requirements, and technology stacks. Key relationships include:
+
+- Ideas have multiple evolution cycles
+- Evolution cycles contain ordered phases
+- Phases contain requirements and tech stacks
+- Tech stacks are associated with specific phases
+- Tech stacks contain multiple technologies with versions
+
+For a detailed view of the entity relationships, see [ER Documentation](docs/ER.md).
+
 ## Routes and Templates
 
 ### Main Routes
@@ -154,41 +204,7 @@ Idea Management is a Flask-based web application that helps you organize and tra
 | `/technology-types/<id>/edit` | GET, POST | `technology_types/edit.html` | Edit type |
 | `/technology-types/<id>/delete` | POST | - | Delete type |
 
-## Features
-
-### Core Features
-
-#### Ideas Management
-- Create, view, edit, and delete ideas
-- Track idea status and evolution
-- Associate ideas with tech stacks
-- Export idea data to YAML format with filters
-
-#### Evolution Cycles
-- Organize idea development into evolution cycles
-- Track cycle progress and status
-- Link cycles to specific phases
-- Manage tech stacks per cycle
-
-#### Phases Management
-- Create and manage development phases
-- Order phases sequentially
-- Associate requirements with phases
-- Track phase completion status
-
-#### Requirements Management
-- Define and categorize requirements
-- Set requirement priorities
-- Link requirements to phases
-- Track requirement status
-
-#### Tech Stack Management
-- Create and manage tech stacks
-- Associate technologies with tech stacks
-- Link tech stacks to ideas
-- Version management for technologies
-
-### UI/UX Features
+## UI/UX Features
 
 - Modern, responsive design using Tailwind CSS
 - Dual navigation system:

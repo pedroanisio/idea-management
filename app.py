@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_migrate import Migrate
 from datetime import datetime
 import os
+import tempfile
+import yaml
 from models.core import (
     db, Status, Idea, EvolutionCycle, IdeaEvolutionCycle, Phase,
     IdeaEvolutionPhase, Requirement, RequirementType, RequirementPriority,
@@ -185,129 +187,105 @@ def create_app():
 
     @app.route('/ideas/<int:id>/export', methods=['POST'])
     def ideas_export(id):
-        idea = db.session.query(Idea)\
-            .options(
-                db.joinedload(Idea.evolution_cycles)
-                .joinedload(IdeaEvolutionCycle.evolution_cycle),
-                db.joinedload(Idea.evolution_cycles)
-                .joinedload(IdeaEvolutionCycle.phases)
-                .joinedload(IdeaEvolutionPhase.phase),
-                db.joinedload(Idea.evolution_cycles)
-                .joinedload(IdeaEvolutionCycle.phases)
-                .joinedload(IdeaEvolutionPhase.requirements)
-                .joinedload(Requirement.status),
-                db.joinedload(Idea.evolution_cycles)
-                .joinedload(IdeaEvolutionCycle.phases)
-                .joinedload(IdeaEvolutionPhase.requirements)
-                .joinedload(Requirement.type),
-                db.joinedload(Idea.evolution_cycles)
-                .joinedload(IdeaEvolutionCycle.tech_stacks),
-                db.joinedload(Idea.evolution_cycles)
-                .joinedload(IdeaEvolutionCycle.status)
-            )\
-            .filter(Idea.id == id)\
-            .first_or_404()
-
-        # Get filters from form
-        include_evolution_cycles = request.form.get('include_evolution_cycles') == 'true'
-        include_phases = request.form.get('include_phases') == 'true'
-        include_requirements = request.form.get('include_requirements') == 'true'
-        include_tech_stacks = request.form.get('include_tech_stacks') == 'true'
+        idea = Idea.query.get_or_404(id)
         
-        # Get filter values
-        status_filter = request.form.getlist('status_filter')
-        evolution_cycle_filter = request.form.getlist('evolution_cycle_filter')
-        phase_filter = request.form.getlist('phase_filter')
-        requirement_type_filter = request.form.getlist('requirement_type_filter')
-
-        # Build the export data
+        include_tech_stacks = request.form.get('include_tech_stacks') == 'true'
+        include_requirements = request.form.get('include_requirements') == 'true'
+        
+        # Get filter parameters
+        evolution_cycle_ids = request.form.getlist('evolution_cycles')
+        phase_ids = request.form.getlist('phases')
+        requirement_type_ids = request.form.getlist('requirement_types')
+        
         export_data = {
             'idea': {
                 'id': idea.id,
                 'title': idea.title,
                 'description': idea.description,
-                'created_at': idea.created_at.isoformat(),
-                'updated_at': idea.updated_at.isoformat() if idea.updated_at else None,
+                'status': idea.status.name if idea.status else None,
+                'evolution_cycles': []
             }
         }
-
-        if include_evolution_cycles:
-            export_data['evolution_cycles'] = []
-            for cycle in idea.evolution_cycles:
-                # Skip if status doesn't match filter
-                if status_filter != ['all'] and str(cycle.status.id) not in status_filter:
+        
+        for cycle in idea.evolution_cycles:
+            # Skip if not in selected cycles
+            if evolution_cycle_ids and str(cycle.evolution_cycle_id) not in evolution_cycle_ids:
+                continue
+                
+            cycle_data = {
+                'id': cycle.id,
+                'name': cycle.evolution_cycle.name,
+                'description': cycle.evolution_cycle.description,
+                'status': cycle.status.name if cycle.status else None,
+                'phases': []
+            }
+            
+            for phase in cycle.phases:
+                # Skip if not in selected phases
+                if phase_ids and str(phase.phase_id) not in phase_ids:
                     continue
                     
-                # Skip if evolution cycle doesn't match filter
-                if evolution_cycle_filter != ['all'] and str(cycle.evolution_cycle.id) not in evolution_cycle_filter:
-                    continue
-
-                cycle_data = {
-                    'id': cycle.id,
-                    'name': cycle.evolution_cycle.name,
-                    'status': cycle.status.name,
+                phase_data = {
+                    'id': phase.id,
+                    'name': phase.phase.name,
+                    'description': phase.phase.description,
+                    'order': phase.order,
+                    'status': phase.status.name if phase.status else None
                 }
-
+                
+                # Include tech stacks for phase
                 if include_tech_stacks:
-                    cycle_data['tech_stacks'] = [
-                        {'id': ts.id, 'name': ts.name}
-                        for ts in cycle.tech_stacks
-                    ]
-
-                if include_phases:
-                    cycle_data['phases'] = []
-                    for phase in cycle.phases:
-                        # Skip if status doesn't match filter
-                        if status_filter != ['all'] and str(phase.status.id) not in status_filter:
-                            continue
-                            
-                        # Skip if phase doesn't match filter
-                        if phase_filter != ['all'] and str(phase.phase.id) not in phase_filter:
-                            continue
-
-                        phase_data = {
-                            'id': phase.id,
-                            'name': phase.phase.name,
-                            'description': phase.phase.description,
-                            'status': phase.status.name,
-                            'order': phase.order,
+                    phase_data['tech_stacks'] = [
+                        {
+                            'id': ts.id,
+                            'name': ts.name,
+                            'type': ts.type.name if ts.type else None,
+                            'technologies': [
+                                {
+                                    'name': tech.name,
+                                    'type': tech.technology_type.name if tech.technology_type else None,
+                                    'version': next(
+                                        (agg.version.version for agg in ts.technology_versions 
+                                         if agg.technology_id == tech.id and agg.version.is_default),
+                                        None
+                                    )
+                                }
+                                for tech in ts.technologies
+                            ] if ts.technologies else []
                         }
-
-                        if include_requirements:
-                            phase_data['requirements'] = []
-                            for req in phase.requirements:
-                                # Skip if status doesn't match filter
-                                if status_filter != ['all'] and str(req.status.id) not in status_filter:
-                                    continue
-                                    
-                                # Skip if requirement type doesn't match filter
-                                if requirement_type_filter != ['all'] and str(req.type_id) not in requirement_type_filter:
-                                    continue
-
-                                phase_data['requirements'].append({
-                                    'id': req.id,
-                                    'name': req.name,
-                                    'description': req.description,
-                                    'type': req.type.name if req.type else None,
-                                    'status': req.status.name,
-                                })
-
-                        if phase_data['requirements'] or not include_requirements:
-                            cycle_data['phases'].append(phase_data)
-
-                if cycle_data.get('phases') or not include_phases:
-                    export_data['evolution_cycles'].append(cycle_data)
-
-        # Create a temporary file to store the YAML
+                        for ts in phase.tech_stacks
+                    ]
+                
+                # Include requirements
+                if include_requirements:
+                    phase_data['requirements'] = [
+                        {
+                            'id': req.id,
+                            'name': req.name,
+                            'description': req.description,
+                            'type': req.type.name if req.type else None,
+                            'priority': req.priority.name if req.priority else None,
+                            'status': req.status.name if req.status else None
+                        }
+                        for req in phase.requirements
+                        if not requirement_type_ids or str(req.type_id) in requirement_type_ids
+                    ]
+                
+                cycle_data['phases'].append(phase_data)
+            
+            if cycle_data['phases']:  # Only include cycles that have matching phases
+                export_data['idea']['evolution_cycles'].append(cycle_data)
+        
+        # Create temporary file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as temp_file:
             yaml.dump(export_data, temp_file, default_flow_style=False, sort_keys=False)
-
-        # Send the file
+            temp_file_path = temp_file.name
+        
         return send_file(
-            temp_file.name,
+            temp_file_path,
+            mimetype='application/x-yaml',
             as_attachment=True,
-            download_name=f'idea_{idea.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.yaml',
-            mimetype='application/x-yaml'
+            download_name=f'idea_{idea.id}_export.yaml'
         )
 
     # Evolution Cycle routes
@@ -828,6 +806,67 @@ def create_app():
             flash('Error deleting phase. Please try again.', 'danger')
             return redirect(url_for('phases_show', id=id))
 
+    @app.route('/phases/<int:phase_id>/techstacks/add', methods=['POST'])
+    def phases_add_techstack(phase_id):
+        phase = IdeaEvolutionPhase.query.get_or_404(phase_id)
+        tech_stack_id = request.form.get('tech_stack_id')
+        
+        if not tech_stack_id:
+            return jsonify({'error': 'Tech stack ID is required'}), 400
+            
+        tech_stack = TechStack.query.get_or_404(tech_stack_id)
+        
+        try:
+            # Check if tech stack is already assigned
+            if tech_stack in phase.tech_stacks:
+                return jsonify({'error': 'Tech stack is already assigned to this phase'}), 400
+                
+            # Add tech stack to phase
+            phase.tech_stacks.append(tech_stack)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Tech stack {tech_stack.name} added successfully',
+                'tech_stack': {
+                    'id': tech_stack.id,
+                    'name': tech_stack.name,
+                    'description': tech_stack.description,
+                    'technologies': [
+                        {
+                            'name': tech.name,
+                            'type': tech.technology_type.name if tech.technology_type else None
+                        }
+                        for tech in tech_stack.technologies
+                    ] if tech_stack.technologies else []
+                }
+            })
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/phases/<int:phase_id>/techstacks/<int:tech_stack_id>/remove', methods=['POST'])
+    def phases_remove_techstack(phase_id, tech_stack_id):
+        phase = IdeaEvolutionPhase.query.get_or_404(phase_id)
+        tech_stack = TechStack.query.get_or_404(tech_stack_id)
+        
+        try:
+            if tech_stack not in phase.tech_stacks:
+                return jsonify({'error': 'Tech stack is not assigned to this phase'}), 400
+                
+            phase.tech_stacks.remove(tech_stack)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Tech stack {tech_stack.name} removed successfully'
+            })
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
     # Requirements routes
     @app.route('/requirements')
     def requirements():
@@ -1276,7 +1315,8 @@ def create_app():
                 .joinedload(IdeaEvolutionCycle.phases)
                 .joinedload(IdeaEvolutionPhase.requirements),
                 db.joinedload(Idea.evolution_cycles)
-                .joinedload(IdeaEvolutionCycle.tech_stacks),
+                .joinedload(IdeaEvolutionCycle.phases)
+                .joinedload(IdeaEvolutionPhase.tech_stacks),
                 db.joinedload(Idea.evolution_cycles)
                 .joinedload(IdeaEvolutionCycle.status),
                 db.joinedload(Idea.evolution_cycles)

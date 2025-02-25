@@ -51,7 +51,9 @@
                 <p class="mt-1 text-xl font-semibold">
                     {% set stack_count = namespace(total=0) %}
                     {% for cycle in idea.evolution_cycles %}
-                        {% set stack_count.total = stack_count.total + cycle.tech_stacks|length %}
+                        {% for phase in cycle.phases %}
+                            {% set stack_count.total = stack_count.total + phase.tech_stacks|length %}
+                        {% endfor %}
                     {% endfor %}
                     {{ stack_count.total }}
                 </p>
@@ -79,70 +81,104 @@
     </div>
 
     <!-- Evolution Cycles -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Evolution Cycles</h2>
-        <div class="space-y-6">
-            {% for idea_cycle in idea.evolution_cycles|sort(attribute='order') %}
+    {% for cycle in idea.evolution_cycles %}
+    <div class="mb-8 p-4 bg-white rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">{{ cycle.evolution_cycle.name }}</h3>
+            <span class="px-3 py-1 text-sm rounded-full 
+                {% if cycle.status.name == 'Completed' %}bg-green-100 text-green-800
+                {% elif cycle.status.name == 'In Progress' %}bg-blue-100 text-blue-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ cycle.status.name }}
+            </span>
+        </div>
+        
+        <!-- Phases -->
+        <div class="space-y-4">
+            {% for phase in cycle.phases|sort(attribute='order') %}
             <div class="border rounded-lg p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">{{ idea_cycle.evolution_cycle.name }}</h3>
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-lg font-semibold">{{ phase.phase.name }}</h4>
                     <span class="px-2 py-1 text-sm rounded-full 
-                        {% if idea_cycle.status.name == 'Completed' %}bg-green-100 text-green-800
-                        {% elif idea_cycle.status.name == 'In Progress' %}bg-blue-100 text-blue-800
+                        {% if phase.status.name == 'Completed' %}bg-green-100 text-green-800
+                        {% elif phase.status.name == 'In Progress' %}bg-blue-100 text-blue-800
                         {% else %}bg-gray-100 text-gray-800{% endif %}">
-                        {{ idea_cycle.status.name }}
+                        {{ phase.status.name }}
                     </span>
                 </div>
                 
-                <!-- Phases -->
-                <div class="space-y-4">
-                    {% for idea_phase in idea_cycle.phases|sort(attribute='order') %}
-                    <div class="bg-gray-50 rounded p-3">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <a href="{{ url_for('evolution_phases_show', 
-                                                   idea_id=idea.id,
-                                                   evolution_id=idea_cycle.evolution_cycle.id,
-                                                   phase_id=idea_phase.phase.id) }}" 
-                                   class="text-lg font-semibold hover:text-blue-600">
-                                    {{ idea_phase.phase.name }}
-                                </a>
-                                <p class="text-sm text-gray-600">{{ idea_phase.phase.description|truncate(100) }}</p>
+                <!-- Tech Stacks for Phase -->
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <h5 class="text-sm font-medium text-gray-700">Tech Stacks</h5>
+                        <button onclick="openTechStackModal('{{ phase.id }}')" 
+                                class="text-sm text-blue-600 hover:text-blue-800">
+                            Manage Tech Stacks
+                        </button>
+                    </div>
+                    <div class="tech-stacks-container" data-phase-id="{{ phase.id }}">
+                        <div class="flex flex-wrap gap-2">
+                            {% for tech_stack in phase.tech_stacks %}
+                            <div class="group relative tech-stack-item" data-tech-stack-id="{{ tech_stack.id }}">
+                                <div class="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
+                                    {{ tech_stack.name }}
+                                    <button onclick="removeTechStack('{{ phase.id }}', '{{ tech_stack.id }}')"
+                                            class="text-red-500 hover:text-red-700">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="hidden group-hover:block absolute z-10 w-48 p-2 mt-2 text-sm bg-white rounded-lg shadow-lg border">
+                                    <p class="font-semibold">{{ tech_stack.name }}</p>
+                                    <p class="text-gray-600">{{ tech_stack.description }}</p>
+                                    <div class="mt-1">
+                                        <p class="text-xs font-medium">Technologies:</p>
+                                        <ul class="list-disc list-inside text-xs text-gray-600">
+                                            {% for tech in tech_stack.technologies %}
+                                            <li>{{ tech.name }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-4">
-                                <span class="px-2 py-1 text-sm rounded-full 
-                                    {% if idea_phase.status.name == 'Completed' %}bg-green-100 text-green-800
-                                    {% elif idea_phase.status.name == 'In Progress' %}bg-blue-100 text-blue-800
-                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                    {{ idea_phase.status.name }}
-                                </span>
-                                <div class="text-right">
-                                    <p class="text-sm text-gray-500">Requirements</p>
-                                    <p class="font-semibold">{{ idea_phase.requirements|length }}</p>
+                            {% else %}
+                            <span class="text-sm text-gray-500">No tech stacks assigned</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requirements Section -->
+                <div class="mt-4">
+                    <h4 class="font-medium text-gray-700 mb-2">Requirements</h4>
+                    <div class="space-y-2">
+                        {% for requirement in phase.requirements %}
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <a href="{{ url_for('requirements_show', id=requirement.id) }}" 
+                                       class="text-lg font-semibold hover:text-blue-600">
+                                        {{ requirement.name }}
+                                    </a>
+                                    <p class="text-sm text-gray-600">{{ requirement.description|truncate(100) }}</p>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <span class="px-2 py-1 text-sm rounded-full 
+                                        {% if requirement.status.name == 'Completed' %}bg-green-100 text-green-800
+                                        {% elif requirement.status.name == 'In Progress' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ requirement.status.name }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <!-- Tech Stacks -->
-                {% if idea_cycle.tech_stacks %}
-                <div class="mt-4">
-                    <h4 class="font-medium text-gray-700 mb-2">Tech Stack</h4>
-                    <div class="flex flex-wrap gap-2">
-                        {% for stack in idea_cycle.tech_stacks %}
-                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                            {{ stack.name }}
-                        </span>
                         {% endfor %}
                     </div>
                 </div>
-                {% endif %}
             </div>
             {% endfor %}
         </div>
     </div>
+    {% endfor %}
 </div>
 
 <!-- Quick Requirement Modal -->
@@ -172,10 +208,10 @@
                     <label class="block text-sm font-medium text-gray-700">Phase</label>
                     <select name="phase_id" required
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        {% for idea_cycle in idea.evolution_cycles %}
-                            <optgroup label="{{ idea_cycle.evolution_cycle.name }}">
-                                {% for idea_phase in idea_cycle.phases %}
-                                    <option value="{{ idea_phase.id }}">{{ idea_phase.phase.name }}</option>
+                        {% for cycle in idea.evolution_cycles %}
+                            <optgroup label="{{ cycle.evolution_cycle.name }}">
+                                {% for phase in cycle.phases %}
+                                    <option value="{{ phase.id }}">{{ phase.phase.name }}</option>
                                 {% endfor %}
                             </optgroup>
                         {% endfor %}
@@ -201,47 +237,35 @@
 <div id="techStackModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Manage Tech Stacks</h3>
-            <button onclick="document.getElementById('techStackModal').classList.add('hidden')"
+            <h3 class="text-lg font-medium text-gray-900">Add Tech Stack</h3>
+            <button onclick="closeTechStackModal()"
                     class="text-gray-400 hover:text-gray-500">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form action="{{ url_for('idea_tech_stacks_update', id=idea.id) }}" method="POST">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Evolution Cycle</label>
-                    <select name="cycle_id" required onchange="showTechStackModal(this.value)"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        {% for cycle in idea.evolution_cycles %}
-                            <option value="{{ cycle.id }}">{{ cycle.evolution_cycle.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Tech Stacks</label>
-                    <div class="mt-2 space-y-2" id="techStackList">
-                        {% for stack in tech_stacks %}
-                            <div class="flex items-center p-2 bg-gray-50 rounded">
-                                <input type="checkbox" name="tech_stacks[]" value="{{ stack.id }}"
-                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                       {% if stack in idea.evolution_cycles[0].tech_stacks %}checked{% endif %}>
-                                <label class="ml-2 block text-sm text-gray-900">{{ stack.name }}</label>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button"
-                            onclick="document.getElementById('techStackModal').classList.add('hidden')"
-                            class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                        Save Changes
-                    </button>
-                </div>
+        
+        <form id="techStackForm" method="POST" class="space-y-4">
+            <input type="hidden" id="phaseId" name="phase_id">
+            <div>
+                <label for="tech_stack_id" class="block text-sm font-medium text-gray-700 mb-2">Tech Stack</label>
+                <select id="tech_stack_id" name="tech_stack_id" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Select a tech stack</option>
+                    {% for tech_stack in tech_stacks %}
+                    <option value="{{ tech_stack.id }}">{{ tech_stack.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeTechStackModal()"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Add Tech Stack
+                </button>
             </div>
         </form>
     </div>
@@ -358,25 +382,145 @@
 </div>
 
 <script>
-function showTechStackModal(cycleId) {
-    // TODO: Implement tech stack list update based on selected cycle
-    const techStackList = document.getElementById('techStackList');
-    fetch(`/ideas/${cycleId}/tech-stacks`)
-        .then(response => response.json())
-        .then(data => {
-            // Update checkboxes based on selected cycle's tech stacks
-            const checkboxes = techStackList.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = data.tech_stacks.includes(parseInt(checkbox.value));
-            });
-        });
+function openTechStackModal(phaseId) {
+    if (!phaseId) {
+        console.error('No phase ID provided');
+        return;
+    }
+    const phaseIdInput = document.getElementById('phaseId');
+    const modal = document.getElementById('techStackModal');
+    const form = document.getElementById('techStackForm');
+    
+    if (!phaseIdInput || !modal || !form) {
+        console.error('Required elements not found');
+        return;
+    }
+    
+    phaseIdInput.value = phaseId;
+    modal.classList.remove('hidden');
+    form.action = `/phases/${phaseId}/techstacks/add`;
 }
 
-function removeTechStack(stackId) {
-    // Uncheck the checkbox for the given stack ID
-    const checkbox = document.querySelector(`input[name="tech_stacks[]"][value="${stackId}"]`);
-    if (checkbox) {
-        checkbox.checked = false;
+function closeTechStackModal() {
+    const modal = document.getElementById('techStackModal');
+    const form = document.getElementById('techStackForm');
+    
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    if (form) {
+        form.reset();
+    }
+}
+
+function addTechStackToUI(phaseId, techStack) {
+    if (!phaseId || !techStack) {
+        console.error('Missing required parameters', { phaseId, techStack });
+        return;
+    }
+
+    const container = document.querySelector(`.tech-stacks-container[data-phase-id="${phaseId}"] .flex`);
+    if (!container) {
+        console.error('Tech stack container not found');
+        return;
+    }
+
+    // Remove "No tech stacks" message if it exists
+    const noTechStacksMsg = container.querySelector('.text-gray-500');
+    if (noTechStacksMsg) {
+        noTechStacksMsg.remove();
+    }
+
+    const techStackElement = document.createElement('div');
+    techStackElement.className = 'group relative tech-stack-item';
+    techStackElement.dataset.techStackId = techStack.id;
+    techStackElement.innerHTML = `
+        <div class="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
+            ${techStack.name}
+            <button onclick="removeTechStack('${phaseId}', '${techStack.id}')"
+                    class="text-red-500 hover:text-red-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="hidden group-hover:block absolute z-10 w-48 p-2 mt-2 text-sm bg-white rounded-lg shadow-lg border">
+            <p class="font-semibold">${techStack.name}</p>
+            <p class="text-gray-600">${techStack.description || ''}</p>
+            <div class="mt-1">
+                <p class="text-xs font-medium">Technologies:</p>
+                <ul class="list-disc list-inside text-xs text-gray-600">
+                    ${(techStack.technologies || []).map(tech => `<li>${tech.name}</li>`).join('')}
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(techStackElement);
+}
+
+document.getElementById('techStackForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const phaseId = document.getElementById('phaseId')?.value;
+            if (phaseId) {
+                addTechStackToUI(phaseId, data.tech_stack);
+                closeTechStackModal();
+            } else {
+                console.error('Phase ID not found');
+            }
+        } else {
+            alert(data.error || 'Failed to add tech stack');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the tech stack');
+    });
+});
+
+function removeTechStack(phaseId, techStackId) {
+    if (!phaseId || !techStackId) {
+        console.error('Missing required parameters', { phaseId, techStackId });
+        return;
+    }
+
+    if (confirm('Are you sure you want to remove this tech stack?')) {
+        fetch(`/phases/${phaseId}/techstacks/${techStackId}/remove`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const techStackElement = document.querySelector(`.tech-stack-item[data-tech-stack-id="${techStackId}"]`);
+                if (techStackElement) {
+                    const container = techStackElement.closest('.flex');
+                    techStackElement.remove();
+                    
+                    // Check if there are no more tech stacks
+                    if (container && !container.querySelector('.tech-stack-item')) {
+                        container.innerHTML = '<span class="text-sm text-gray-500">No tech stacks assigned</span>';
+                    }
+                }
+            } else {
+                alert(data.error || 'Failed to remove tech stack');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while removing the tech stack');
+        });
     }
 }
 </script>
