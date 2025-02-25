@@ -6,9 +6,13 @@
 <div class="container mx-auto">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-800">Requirements</h1>
-        <a href="{{ url_for('requirements_create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
+        {% if idea_evolution_phase_id %}
+        <a href="{{ url_for('requirements_create', idea_evolution_phase_id=idea_evolution_phase_id) }}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
             New Requirement
         </a>
+        {% else %}
+        <p class="text-gray-600">Please select a phase first to create requirements.</p>
+        {% endif %}
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

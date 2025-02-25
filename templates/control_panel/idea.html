@@ -191,43 +191,55 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form action="{{ url_for('requirements_create') }}" method="POST">
-            <input type="hidden" name="idea_id" value="{{ idea.id }}">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Name</label>
-                    <input type="text" name="name" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea name="description" rows="3"
-                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Phase</label>
-                    <select name="phase_id" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        {% for cycle in idea.evolution_cycles %}
-                            <optgroup label="{{ cycle.evolution_cycle.name }}">
-                                {% for phase in cycle.phases %}
-                                    <option value="{{ phase.id }}">{{ phase.phase.name }}</option>
-                                {% endfor %}
-                            </optgroup>
+        <form action="{{ url_for('requirements_create') }}" method="POST" class="space-y-4">
+            <div class="mb-4">
+                <label for="idea_evolution_phase_id" class="block text-sm font-medium text-gray-700">Select Phase</label>
+                <select name="idea_evolution_phase_id" id="idea_evolution_phase_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                    <option value="">Select a phase...</option>
+                    {% for cycle in idea.evolution_cycles %}
+                        {% for phase in cycle.phases %}
+                            <option value="{{ phase.id }}">{{ cycle.evolution_cycle.name }} - {{ phase.phase.name }}</option>
                         {% endfor %}
-                    </select>
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button"
-                            onclick="document.getElementById('quickRequirementModal').classList.add('hidden')"
-                            class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                        Add Requirement
-                    </button>
-                </div>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea name="description" rows="3" required
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Type</label>
+                <select name="type_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Select a type...</option>
+                    {% for type in requirement_types %}
+                    <option value="{{ type.id }}">{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Priority</label>
+                <select name="priority_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Select a priority...</option>
+                    {% for priority in requirement_priorities %}
+                    <option value="{{ priority.id }}">{{ priority.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button type="button"
+                        onclick="document.getElementById('quickRequirementModal').classList.add('hidden')"
+                        class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Add Requirement
+                </button>
             </div>
         </form>
     </div>

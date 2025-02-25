@@ -80,10 +80,10 @@
                     <div>
                         <label for="priority_id" class="block text-sm font-medium text-gray-700">Priority</label>
                         <div class="mt-1">
-                            <select name="priority_id" id="priority_id"
+                            <select name="priority_id" id="priority_id" required
                                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">Select a priority...</option>
-                                {% for priority in priorities %}
+                                {% for priority in requirement_priorities %}
                                 <option value="{{ priority.id }}"
                                         class="{% if priority.name == 'High' %}text-red-600{% elif priority.name == 'Medium' %}text-yellow-600{% else %}text-green-600{% endif %}">
                                     {{ priority.name }}
@@ -94,6 +94,8 @@
                         <p class="mt-1 text-sm text-gray-500">How important is this requirement</p>
                     </div>
                 </div>
+
+                <input type="hidden" name="idea_evolution_phase_id" value="{{ phase_details.IdeaEvolutionPhase.id }}">
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-3 pt-6 border-t">
