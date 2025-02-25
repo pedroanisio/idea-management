@@ -4,67 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Idea Management{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block styles %}{% endblock %}
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
-    <header class="sticky top-0 z-50">
-        {% include 'layouts/navbar.html' %}
-        
-        <!-- Mobile Menu Button -->
-        <div class="md:hidden flex items-center absolute top-4 right-4">
-            <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-600">
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
-        </div>
-        
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden fixed inset-0 z-40 bg-gray-800 bg-opacity-90">
-            <div class="p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-white">Menu</h2>
-                    <button id="close-mobile-menu" class="text-white">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{{ url_for('index') }}" class="block p-2 rounded text-white hover:bg-gray-700 {% if request.endpoint == 'index' %}bg-gray-700{% endif %}">
-                            <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('ideas') }}" class="block p-2 rounded text-white hover:bg-gray-700 {% if request.endpoint == 'ideas' %}bg-gray-700{% endif %}">
-                            <i class="fas fa-lightbulb mr-2"></i> Ideas
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('evolutions') }}" class="block p-2 rounded text-white hover:bg-gray-700 {% if request.endpoint == 'evolutions' %}bg-gray-700{% endif %}">
-                            <i class="fas fa-chart-line mr-2"></i> Evolution Cycles
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('techstacks') }}" class="block p-2 rounded text-white hover:bg-gray-700 {% if request.endpoint == 'techstacks' %}bg-gray-700{% endif %}">
-                            <i class="fas fa-layer-group mr-2"></i> Tech Stacks
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('technologies') }}" class="block p-2 rounded text-white hover:bg-gray-700 {% if request.endpoint == 'technologies' %}bg-gray-700{% endif %}">
-                            <i class="fas fa-cogs mr-2"></i> Technologies
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </header>
-
-    <main class="flex-1 p-6">
+<body class="bg-algorithm-gray dark:bg-neural-blue text-data-text dark:text-cognitive-white min-h-screen flex flex-col">
+    {% include 'layouts/navbar.html' %}
+    
+    <main class="flex-grow container mx-auto px-4 py-6">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="fixed top-20 right-4 z-50 space-y-2">
@@ -80,19 +26,30 @@
         
         {% block content %}{% endblock %}
     </main>
-
-    <footer class="bg-gray-800 text-white p-4">
-        <div class="container mx-auto text-center">
-            <p>&copy; {{ now.year }} Idea Management. All rights reserved.</p>
-        </div>
-    </footer>
-
+    
+    {% include 'layouts/components/footer.html' %}
+    
+    <!-- Add theme toggle button -->
+    <button id="theme-toggle" 
+            class="fixed bottom-4 right-4 p-2 rounded-full bg-neural-blue dark:bg-cognitive-white text-cognitive-white dark:text-neural-blue shadow-lg hover:opacity-90 transition-opacity"
+            aria-label="Toggle theme">
+        <!-- Sun icon for dark mode -->
+        <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <!-- Moon icon for light mode -->
+        <svg class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+    </button>
+    
     <!-- Core JavaScript -->
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/loading-states.js') }}"></script>
     <script src="{{ url_for('static', filename='js/view-switcher.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    {% block extra_js %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,49 @@
+{% macro primary_button(text, href='#', type='button', classes='', icon='', disabled=false) %}
+<button type="{{ type }}" 
+        class="bg-intelligence-purple hover:bg-intelligence-purple/90 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-intelligence-purple focus:ring-offset-2 transition-colors {{ classes }}"
+        {% if disabled %}disabled{% endif %}
+        {% if href != '#' %}onclick="window.location='{{ href }}'"{% endif %}>
+    {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro secondary_button(text, href='#', type='button', classes='', icon='', disabled=false) %}
+<button type="{{ type }}" 
+        class="bg-algorithm-gray hover:bg-algorithm-gray/90 text-data-text border border-interface-divider font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-neural-blue focus:ring-offset-2 transition-colors {{ classes }}"
+        {% if disabled %}disabled{% endif %}
+        {% if href != '#' %}onclick="window.location='{{ href }}'"{% endif %}>
+    {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro success_button(text, href='#', type='button', classes='', icon='', disabled=false) %}
+<button type="{{ type }}" 
+        class="bg-performance-green hover:bg-performance-green/90 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-performance-green focus:ring-offset-2 transition-colors {{ classes }}"
+        {% if disabled %}disabled{% endif %}
+        {% if href != '#' %}onclick="window.location='{{ href }}'"{% endif %}>
+    {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro danger_button(text, href='#', type='button', classes='', icon='', disabled=false) %}
+<button type="{{ type }}" 
+        class="bg-alert-red hover:bg-alert-red/90 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-alert-red focus:ring-offset-2 transition-colors {{ classes }}"
+        {% if disabled %}disabled{% endif %}
+        {% if href != '#' %}onclick="window.location='{{ href }}'"{% endif %}>
+    {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro innovation_button(text, href='#', type='button', classes='', icon='', disabled=false) %}
+<button type="{{ type }}" 
+        class="bg-innovation-orange hover:bg-innovation-orange/90 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-innovation-orange focus:ring-offset-2 transition-colors {{ classes }}"
+        {% if disabled %}disabled{% endif %}
+        {% if href != '#' %}onclick="window.location='{{ href }}'"{% endif %}>
+    {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+    {{ text }}
+</button>
+{% endmacro %}

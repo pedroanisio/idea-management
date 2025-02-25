@@ -1,0 +1,48 @@
+<footer class="bg-neural-blue text-cognitive-white">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold">Idea Management</h3>
+                <p class="text-sm text-cognitive-white/80">Empowering innovation through structured idea management and evolution.</p>
+            </div>
+            
+            <div class="space-y-4">
+                <h4 class="text-sm font-semibold uppercase">Quick Links</h4>
+                <ul class="space-y-2">
+                    <li><a href="{{ url_for('index') }}" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Dashboard</a></li>
+                    <li><a href="{{ url_for('ideas') }}" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Ideas</a></li>
+                    <li><a href="{{ url_for('evolutions') }}" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Evolution Cycles</a></li>
+                    <li><a href="{{ url_for('techstacks') }}" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Tech Stacks</a></li>
+                </ul>
+            </div>
+            
+            <div class="space-y-4">
+                <h4 class="text-sm font-semibold uppercase">Resources</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Documentation</a></li>
+                    <li><a href="#" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">API Reference</a></li>
+                    <li><a href="#" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Support</a></li>
+                </ul>
+            </div>
+            
+            <div class="space-y-4">
+                <h4 class="text-sm font-semibold uppercase">Connect</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">GitHub</a></li>
+                    <li><a href="#" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Twitter</a></li>
+                    <li><a href="#" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">LinkedIn</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mt-8 pt-8 border-t border-cognitive-white/20">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm text-cognitive-white/80">&copy; {{ now.year }} Idea Management. All rights reserved.</p>
+                <div class="mt-4 md:mt-0 space-x-4">
+                    <a href="#" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Privacy Policy</a>
+                    <a href="#" class="text-sm text-cognitive-white/80 hover:text-cognitive-white">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

@@ -1,61 +1,97 @@
-<nav class="bg-gray-800 text-white shadow-md">
-    <div class="container mx-auto px-6">
-        <div class="flex items-center justify-between h-16">
+<nav class="bg-neural-blue text-cognitive-white shadow-md">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo and Main Nav -->
             <div class="flex items-center">
-                <a href="{{ url_for('index') }}" class="text-xl font-bold">Idea Management</a>
-                <div class="hidden md:flex items-center space-x-4 ml-10">
+                <a href="{{ url_for('index') }}" class="font-bold text-xl">Idea Management</a>
+                
+                <div class="hidden md:flex ml-10 space-x-4">
+                    <a href="{{ url_for('index') }}" 
+                       class="px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'index' %}bg-intelligence-purple text-cognitive-white{% else %}text-cognitive-white hover:bg-neural-blue/80{% endif %}">
+                        Dashboard
+                    </a>
+                    
                     <a href="{{ url_for('ideas') }}" 
-                        class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'ideas' %}bg-gray-700{% endif %}">
+                       class="px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'ideas' %}bg-intelligence-purple text-cognitive-white{% else %}text-cognitive-white hover:bg-neural-blue/80{% endif %}">
                         Ideas
                     </a>
+                    
                     <a href="{{ url_for('evolutions') }}" 
-                        class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'evolutions' %}bg-gray-700{% endif %}">
+                       class="px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'evolutions' %}bg-intelligence-purple text-cognitive-white{% else %}text-cognitive-white hover:bg-neural-blue/80{% endif %}">
                         Evolution Cycles
                     </a>
+                    
                     <a href="{{ url_for('techstacks') }}" 
-                        class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'techstacks' %}bg-gray-700{% endif %}">
+                       class="px-3 py-2 rounded-md text-sm font-medium {% if request.endpoint == 'techstacks' %}bg-intelligence-purple text-cognitive-white{% else %}text-cognitive-white hover:bg-neural-blue/80{% endif %}">
                         Tech Stacks
-                    </a>
-                    <a href="{{ url_for('technologies') }}" 
-                        class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 {% if request.endpoint == 'technologies' %}bg-gray-700{% endif %}">
-                        Technologies
                     </a>
                 </div>
             </div>
+
+            <!-- Right Side Menu -->
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="{{ url_for('ideas_create') }}" class="bg-intelligence-purple hover:bg-intelligence-purple/90 text-cognitive-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                    New Idea
+                </a>
+            </div>
+            
+            <!-- Mobile Menu Button -->
             <div class="md:hidden">
-                <button id="mobile-menu-button" class="text-gray-300 hover:text-white">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                <button type="button" 
+                        class="text-cognitive-white hover:bg-neural-blue/80 inline-flex items-center justify-center p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cognitive-white"
+                        aria-controls="mobile-menu"
+                        aria-expanded="false"
+                        @click="mobileMenuOpen = !mobileMenuOpen">
+                    <span class="sr-only">Open main menu</span>
+                    <svg class="h-6 w-6" x-show="!mobileMenuOpen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg class="h-6 w-6" x-show="mobileMenuOpen" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
         </div>
     </div>
-    <!-- Mobile menu -->
-    <div class="md:hidden hidden" id="mobile-menu">
+
+    <!-- Mobile Menu -->
+    <div class="md:hidden" id="mobile-menu" x-show="mobileMenuOpen" style="display: none;">
         <div class="px-2 pt-2 pb-3 space-y-1">
+            <a href="{{ url_for('index') }}" 
+               class="block px-3 py-2 rounded-md text-base font-medium {% if request.endpoint == 'index' %}bg-intelligence-purple text-cognitive-white{% else %}text-cognitive-white hover:bg-neural-blue/80{% endif %}">
+                Dashboard
+            </a>
+            
             <a href="{{ url_for('ideas') }}" 
-                class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 {% if request.endpoint == 'ideas' %}bg-gray-700{% endif %}">
+               class="block px-3 py-2 rounded-md text-base font-medium {% if request.endpoint == 'ideas' %}bg-intelligence-purple text-cognitive-white{% else %}text-cognitive-white hover:bg-neural-blue/80{% endif %}">
                 Ideas
             </a>
+            
             <a href="{{ url_for('evolutions') }}" 
-                class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 {% if request.endpoint == 'evolutions' %}bg-gray-700{% endif %}">
+               class="block px-3 py-2 rounded-md text-base font-medium {% if request.endpoint == 'evolutions' %}bg-intelligence-purple text-cognitive-white{% else %}text-cognitive-white hover:bg-neural-blue/80{% endif %}">
                 Evolution Cycles
             </a>
+            
             <a href="{{ url_for('techstacks') }}" 
-                class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 {% if request.endpoint == 'techstacks' %}bg-gray-700{% endif %}">
+               class="block px-3 py-2 rounded-md text-base font-medium {% if request.endpoint == 'techstacks' %}bg-intelligence-purple text-cognitive-white{% else %}text-cognitive-white hover:bg-neural-blue/80{% endif %}">
                 Tech Stacks
             </a>
-            <a href="{{ url_for('technologies') }}" 
-                class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700 {% if request.endpoint == 'technologies' %}bg-gray-700{% endif %}">
-                Technologies
-            </a>
+            
+            <div class="mt-4 px-3">
+                <a href="{{ url_for('ideas_create') }}" class="w-full bg-intelligence-purple hover:bg-intelligence-purple/90 text-cognitive-white px-4 py-2 rounded-md text-base font-medium transition-colors block text-center">
+                    New Idea
+                </a>
+            </div>
         </div>
     </div>
 </nav>
 
+<!-- Alpine.js for mobile menu -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
-    document.getElementById('mobile-menu-button').addEventListener('click', function() {
-        document.getElementById('mobile-menu').classList.toggle('hidden');
-    });
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('navigation', () => ({
+            mobileMenuOpen: false
+        }))
+    })
 </script>

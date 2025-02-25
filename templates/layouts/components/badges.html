@@ -1,0 +1,31 @@
+{% macro status_badge(status, classes='') %}
+  {% set status_lower = status|lower %}
+  {% if status_lower == 'new' or status_lower == 'pending' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-discovery-blue text-neural-blue {{ classes }}">{{ status }}</span>
+  {% elif status_lower == 'in progress' or status_lower == 'active' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-intelligence-purple/20 text-intelligence-purple {{ classes }}">{{ status }}</span>
+  {% elif status_lower == 'completed' or status_lower == 'done' or status_lower == 'success' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-performance-green/20 text-performance-green {{ classes }}">{{ status }}</span>
+  {% elif status_lower == 'on hold' or status_lower == 'paused' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-innovation-orange/20 text-innovation-orange {{ classes }}">{{ status }}</span>
+  {% elif status_lower == 'error' or status_lower == 'failed' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-alert-red/20 text-alert-red {{ classes }}">{{ status }}</span>
+  {% else %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-insight-gray/20 text-insight-gray {{ classes }}">{{ status }}</span>
+  {% endif %}
+{% endmacro %}
+
+{% macro priority_badge(priority, classes='') %}
+  {% set priority_lower = priority|lower %}
+  {% if priority_lower == 'must have' or priority_lower == 'high' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-alert-red/20 text-alert-red {{ classes }}">{{ priority }}</span>
+  {% elif priority_lower == 'should have' or priority_lower == 'medium' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-innovation-orange/20 text-innovation-orange {{ classes }}">{{ priority }}</span>
+  {% elif priority_lower == 'could have' or priority_lower == 'low' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-intelligence-purple/20 text-intelligence-purple {{ classes }}">{{ priority }}</span>
+  {% elif priority_lower == "won't have" or priority_lower == 'none' %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-insight-gray/20 text-insight-gray {{ classes }}">{{ priority }}</span>
+  {% else %}
+    <span class="px-2 py-1 text-xs font-medium rounded-full bg-insight-gray/20 text-insight-gray {{ classes }}">{{ priority }}</span>
+  {% endif %}
+{% endmacro %}
