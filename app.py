@@ -875,10 +875,11 @@ def create_app():
 
     @app.route('/requirements/create', methods=['GET', 'POST'])
     def requirements_create():
-        idea_evolution_phase_id = request.args.get('idea_evolution_phase_id', type=int)
+        # Get idea_evolution_phase_id from either query params (GET) or form data (POST)
+        idea_evolution_phase_id = request.args.get('idea_evolution_phase_id', type=int) or request.form.get('idea_evolution_phase_id', type=int)
         
         if not idea_evolution_phase_id:
-            flash('No phase specified.', 'danger')
+            flash('No phase specified. Please select a phase first.', 'danger')
             return redirect(url_for('index'))
             
         # Get the phase details
@@ -932,7 +933,18 @@ def create_app():
                 db.session.add(requirement)
                 db.session.commit()
                 flash('Requirement created successfully!', 'success')
-                return redirect(url_for('ideas_show', id=phase_details.IdeaEvolutionPhase.idea_evolution_cycle.idea_id))
+                
+                # If the request came from the quick create form in control panel
+                referer = request.headers.get('Referer', '')
+                if 'control-panel' in referer:
+                    return redirect(url_for('idea_control_panel', id=phase_details.IdeaEvolutionPhase.idea_evolution_cycle.idea_id))
+                
+                # Otherwise redirect to the phase view
+                return redirect(url_for('evolution_phases_show', 
+                    idea_id=phase_details.IdeaEvolutionPhase.idea_evolution_cycle.idea_id,
+                    evolution_id=phase_details.IdeaEvolutionPhase.idea_evolution_cycle.evolution_cycle_id,
+                    phase_id=phase_details.IdeaEvolutionPhase.phase_id))
+                    
             except Exception as e:
                 db.session.rollback()
                 flash('Error creating requirement. Please try again.', 'danger')
@@ -1329,6 +1341,7 @@ def create_app():
         tech_stacks = TechStack.query.all()
         statuses = Status.query.all()
         requirement_types = RequirementType.query.all()
+        requirement_priorities = RequirementPriority.query.all()
 
         # Calculate statistics for this idea
         total_cycles = len(idea.evolution_cycles)
@@ -1368,6 +1381,7 @@ def create_app():
                              tech_stacks=tech_stacks,
                              statuses=statuses,
                              requirement_types=requirement_types,
+                             requirement_priorities=requirement_priorities,
                              stats=stats)
 
     @app.route('/ideas/<int:id>/tech-stacks/manage', methods=['POST'])

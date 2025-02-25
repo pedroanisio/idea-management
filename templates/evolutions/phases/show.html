@@ -100,7 +100,7 @@
             </button>
         </div>
         
-        <form method="POST" action="{{ url_for('requirements_create') }}">
+        <form method="POST" action="{{ url_for('requirements_create', idea_evolution_phase_id=idea_phase.id) }}">
             <input type="hidden" name="idea_evolution_phase_id" value="{{ idea_phase.id }}">
             
             <div class="mb-4">

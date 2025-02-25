@@ -208,7 +208,8 @@
             </button>
         </div>
         
-        <form method="POST" action="{{ url_for('requirements_create') }}" class="space-y-4">
+        <form method="POST" action="{{ url_for('requirements_create', idea_evolution_phase_id=idea_evolution_phase.id) }}" class="space-y-4">
+            <input type="hidden" name="idea_evolution_phase_id" value="{{ idea_evolution_phase.id }}">
             <div>
                 <label class="block text-sm font-medium text-gray-700">Name</label>
                 <input type="text" name="name" required
