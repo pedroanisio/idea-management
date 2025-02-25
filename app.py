@@ -698,6 +698,11 @@ def create_app():
             priority_id = request.form.get('priority_id')
             if priority_id:
                 requirement.priority = RequirementPriority.query.get(priority_id)
+
+            # Update status if provided
+            status_id = request.form.get('status_id')
+            if status_id:
+                requirement.status = Status.query.get(status_id)
             
             # Update phase if provided
             idea_evolution_phase_id = request.form.get('idea_evolution_phase_id')
@@ -725,12 +730,14 @@ def create_app():
 
         types = RequirementType.query.all()
         priorities = RequirementPriority.query.all()
-        
+        statuses = Status.query.all()
+
         return render_template('requirements/edit.html',
                              requirement=requirement,
-                             idea_evolution_phases=idea_evolution_phases,
                              types=types,
-                             priorities=priorities)
+                             priorities=priorities,
+                             statuses=statuses,
+                             idea_evolution_phases=idea_evolution_phases)
 
     @app.route('/requirements/<int:id>/delete', methods=['POST'])
     def requirements_delete(id):
