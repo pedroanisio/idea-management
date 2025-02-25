@@ -139,6 +139,12 @@
                                                                 </span>
                                                                 {% endif %}
                                                             </div>
+                                                            <div class="mt-2">
+                                                                <a href="{{ url_for('requirements_show', id=req.id) }}" 
+                                                                   class="text-xs text-blue-600 hover:text-blue-800 flex items-center">
+                                                                    <span class="mr-1">👁️</span> View Details
+                                                                </a>
+                                                            </div>
                                                         </div>
                                                         <span class="status-badge {{ req.status.name|lower|replace(' ', '-') }} 
                                                                  bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">
