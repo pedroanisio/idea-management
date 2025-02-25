@@ -183,6 +183,133 @@ def create_app():
         flash('Idea deleted successfully!', 'success')
         return redirect(url_for('ideas'))
 
+    @app.route('/ideas/<int:id>/export', methods=['POST'])
+    def ideas_export(id):
+        idea = db.session.query(Idea)\
+            .options(
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.evolution_cycle),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.phases)
+                .joinedload(IdeaEvolutionPhase.phase),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.phases)
+                .joinedload(IdeaEvolutionPhase.requirements)
+                .joinedload(Requirement.status),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.phases)
+                .joinedload(IdeaEvolutionPhase.requirements)
+                .joinedload(Requirement.type),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.tech_stacks),
+                db.joinedload(Idea.evolution_cycles)
+                .joinedload(IdeaEvolutionCycle.status)
+            )\
+            .filter(Idea.id == id)\
+            .first_or_404()
+
+        # Get filters from form
+        include_evolution_cycles = request.form.get('include_evolution_cycles') == 'true'
+        include_phases = request.form.get('include_phases') == 'true'
+        include_requirements = request.form.get('include_requirements') == 'true'
+        include_tech_stacks = request.form.get('include_tech_stacks') == 'true'
+        
+        # Get filter values
+        status_filter = request.form.getlist('status_filter')
+        evolution_cycle_filter = request.form.getlist('evolution_cycle_filter')
+        phase_filter = request.form.getlist('phase_filter')
+        requirement_type_filter = request.form.getlist('requirement_type_filter')
+
+        # Build the export data
+        export_data = {
+            'idea': {
+                'id': idea.id,
+                'title': idea.title,
+                'description': idea.description,
+                'created_at': idea.created_at.isoformat(),
+                'updated_at': idea.updated_at.isoformat() if idea.updated_at else None,
+            }
+        }
+
+        if include_evolution_cycles:
+            export_data['evolution_cycles'] = []
+            for cycle in idea.evolution_cycles:
+                # Skip if status doesn't match filter
+                if status_filter != ['all'] and str(cycle.status.id) not in status_filter:
+                    continue
+                    
+                # Skip if evolution cycle doesn't match filter
+                if evolution_cycle_filter != ['all'] and str(cycle.evolution_cycle.id) not in evolution_cycle_filter:
+                    continue
+
+                cycle_data = {
+                    'id': cycle.id,
+                    'name': cycle.evolution_cycle.name,
+                    'status': cycle.status.name,
+                }
+
+                if include_tech_stacks:
+                    cycle_data['tech_stacks'] = [
+                        {'id': ts.id, 'name': ts.name}
+                        for ts in cycle.tech_stacks
+                    ]
+
+                if include_phases:
+                    cycle_data['phases'] = []
+                    for phase in cycle.phases:
+                        # Skip if status doesn't match filter
+                        if status_filter != ['all'] and str(phase.status.id) not in status_filter:
+                            continue
+                            
+                        # Skip if phase doesn't match filter
+                        if phase_filter != ['all'] and str(phase.phase.id) not in phase_filter:
+                            continue
+
+                        phase_data = {
+                            'id': phase.id,
+                            'name': phase.phase.name,
+                            'description': phase.phase.description,
+                            'status': phase.status.name,
+                            'order': phase.order,
+                        }
+
+                        if include_requirements:
+                            phase_data['requirements'] = []
+                            for req in phase.requirements:
+                                # Skip if status doesn't match filter
+                                if status_filter != ['all'] and str(req.status.id) not in status_filter:
+                                    continue
+                                    
+                                # Skip if requirement type doesn't match filter
+                                if requirement_type_filter != ['all'] and str(req.type_id) not in requirement_type_filter:
+                                    continue
+
+                                phase_data['requirements'].append({
+                                    'id': req.id,
+                                    'name': req.name,
+                                    'description': req.description,
+                                    'type': req.type.name if req.type else None,
+                                    'status': req.status.name,
+                                })
+
+                        if phase_data['requirements'] or not include_requirements:
+                            cycle_data['phases'].append(phase_data)
+
+                if cycle_data.get('phases') or not include_phases:
+                    export_data['evolution_cycles'].append(cycle_data)
+
+        # Create a temporary file to store the YAML
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as temp_file:
+            yaml.dump(export_data, temp_file, default_flow_style=False, sort_keys=False)
+
+        # Send the file
+        return send_file(
+            temp_file.name,
+            as_attachment=True,
+            download_name=f'idea_{idea.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.yaml',
+            mimetype='application/x-yaml'
+        )
+
     # Evolution Cycle routes
     @app.route('/evolutions')
     def evolutions():
@@ -608,7 +735,7 @@ def create_app():
                 db.joinedload(IdeaEvolutionPhase.requirements)
                 .joinedload(Requirement.status),
                 db.joinedload(IdeaEvolutionPhase.requirements)
-                .joinedload(Requirement.requirement_type),
+                .joinedload(Requirement.type),
                 db.joinedload(IdeaEvolutionPhase.idea_evolution_cycle)
                 .joinedload(IdeaEvolutionCycle.idea),
                 db.joinedload(IdeaEvolutionPhase.idea_evolution_cycle)
@@ -635,7 +762,7 @@ def create_app():
         idea_evolution_phases = db.session.query(
             IdeaEvolutionPhase.id,
             Idea.id.label('idea_id'),
-            Idea.title.label('idea_name'),
+            Idea.title.label('idea_name'),  
             EvolutionCycle.name.label('cycle_name'),
             Phase.order.label('phase_order')
         ).join(
@@ -788,59 +915,30 @@ def create_app():
     @app.route('/requirements/<int:id>/edit', methods=['GET', 'POST'])
     def requirements_edit(id):
         requirement = Requirement.query.get_or_404(id)
-        if request.method == 'POST':
-            requirement.name = request.form.get('name')
-            requirement.description = request.form.get('description')
-            
-            # Update type if provided
-            type_id = request.form.get('type_id')
-            if type_id:
-                requirement.type = RequirementType.query.get(type_id)
-            
-            # Update priority if provided
-            priority_id = request.form.get('priority_id')
-            if priority_id:
-                requirement.priority = RequirementPriority.query.get(priority_id)
+        requirement_types = RequirementType.query.all()
+        statuses = Status.query.all()
 
-            # Update status if provided
-            status_id = request.form.get('status_id')
-            if status_id:
-                requirement.status = Status.query.get(status_id)
-            
-            # Update phase if provided
-            idea_evolution_phase_id = request.form.get('idea_evolution_phase_id')
-            if idea_evolution_phase_id:
-                requirement.idea_evolution_phase_id = idea_evolution_phase_id
+        if request.method == 'POST':
+            requirement.name = request.form['name']
+            requirement.description = request.form['description']
+            requirement.type_id = request.form['requirement_type_id']
+            requirement.status_id = request.form['status_id']
 
             try:
                 db.session.commit()
                 flash('Requirement updated successfully!', 'success')
-                return redirect(url_for('requirements_show', id=requirement.id))
+                return redirect(url_for('evolution_phases_show',
+                                      idea_id=requirement.idea_evolution_phase.idea_evolution_cycle.idea.id,
+                                      evolution_id=requirement.idea_evolution_phase.idea_evolution_cycle.evolution_cycle.id,
+                                      phase_id=requirement.idea_evolution_phase.phase.id))
             except Exception as e:
                 db.session.rollback()
                 flash('Error updating requirement. Please try again.', 'danger')
-                return redirect(url_for('requirements_edit', id=requirement.id))
-
-        # Get all available phases from all evolution cycles
-        idea_evolution_phases = IdeaEvolutionPhase.query\
-            .join(IdeaEvolutionPhase.idea_evolution_cycle)\
-            .join(IdeaEvolutionCycle.idea)\
-            .join(IdeaEvolutionPhase.phase)\
-            .join(Phase.evolution_cycle)\
-            .filter(IdeaEvolutionPhase.id == requirement.idea_evolution_phase_id)\
-            .order_by(EvolutionCycle.name, Phase.order)\
-            .all()
-
-        types = RequirementType.query.all()
-        priorities = RequirementPriority.query.all()
-        statuses = Status.query.all()
 
         return render_template('requirements/edit.html',
                              requirement=requirement,
-                             types=types,
-                             priorities=priorities,
-                             statuses=statuses,
-                             idea_evolution_phases=idea_evolution_phases)
+                             requirement_types=requirement_types,
+                             statuses=statuses)
 
     @app.route('/requirements/<int:id>/delete', methods=['POST'])
     def requirements_delete(id):
