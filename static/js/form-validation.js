@@ -16,6 +16,28 @@ const FormValidator = {
             }
         });
         
+        // Validate text length
+        const textFields = form.querySelectorAll('input[type="text"], textarea');
+        textFields.forEach(field => {
+            const minLength = field.getAttribute('minlength');
+            const maxLength = field.getAttribute('maxlength');
+            const value = field.value.trim();
+            
+            if (value) {
+                if (minLength && value.length < parseInt(minLength)) {
+                    isValid = false;
+                    this.addError(field, `Must be at least ${minLength} characters`);
+                    errorMessages.push(`${field.name || 'Field'} must be at least ${minLength} characters`);
+                }
+                
+                if (maxLength && value.length > parseInt(maxLength)) {
+                    isValid = false;
+                    this.addError(field, `Must be no more than ${maxLength} characters`);
+                    errorMessages.push(`${field.name || 'Field'} must be no more than ${maxLength} characters`);
+                }
+            }
+        });
+        
         // Validate email fields
         const emailFields = form.querySelectorAll('input[type="email"]');
         emailFields.forEach(field => {
@@ -128,9 +150,26 @@ const FormValidator = {
                     } else if (field.type === 'email' && field.value.trim() && !this.isValidEmail(field.value)) {
                         this.addError(field, 'Please enter a valid email address');
                     } else {
-                        field.classList.remove('border-red-500');
-                        const errorMessage = field.parentElement.querySelector('.error-message');
-                        if (errorMessage) errorMessage.remove();
+                        // Check minlength/maxlength
+                        const minLength = field.getAttribute('minlength');
+                        const maxLength = field.getAttribute('maxlength');
+                        const value = field.value.trim();
+                        
+                        if (value) {
+                            if (minLength && value.length < parseInt(minLength)) {
+                                this.addError(field, `Must be at least ${minLength} characters`);
+                            } else if (maxLength && value.length > parseInt(maxLength)) {
+                                this.addError(field, `Must be no more than ${maxLength} characters`);
+                            } else {
+                                field.classList.remove('border-red-500');
+                                const errorMessage = field.parentElement.querySelector('.error-message');
+                                if (errorMessage) errorMessage.remove();
+                            }
+                        } else {
+                            field.classList.remove('border-red-500');
+                            const errorMessage = field.parentElement.querySelector('.error-message');
+                            if (errorMessage) errorMessage.remove();
+                        }
                     }
                 });
             });

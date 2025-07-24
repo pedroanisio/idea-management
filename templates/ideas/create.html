@@ -7,17 +7,21 @@
     <div class="bg-white rounded-lg shadow-md p-6">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">New Idea</h1>
         
-        <form method="POST" action="{{ url_for('ideas_create') }}" class="space-y-6">
+        <form method="POST" action="{{ url_for('ideas_create') }}" class="space-y-6" id="ideaForm">
             <div>
                 <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-                <input type="text" name="title" id="title" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <input type="text" name="title" id="title" required minlength="3" maxlength="200"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Enter a descriptive title">
+                <p class="mt-1 text-sm text-gray-500">Title must be between 3 and 200 characters</p>
             </div>
 
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea name="description" id="description" rows="4" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                <textarea name="description" id="description" rows="4" required minlength="10"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Describe your idea in detail"></textarea>
+                <p class="mt-1 text-sm text-gray-500">Description must be at least 10 characters</p>
             </div>
 
             <div>
@@ -37,11 +41,39 @@
                     Cancel
                 </a>
                 <button type="submit" 
-                    class="bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded">
+                    class="bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded"
+                    id="submitButton">
                     Create Idea
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('ideaForm');
+    const submitButton = document.getElementById('submitButton');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Disable submit button to prevent double submission
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        
+        // Validate form
+        if (FormValidator.validateForm(form)) {
+            // If validation passes, submit the form
+            form.submit();
+        } else {
+            // Re-enable submit button if validation fails
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Create Idea';
+        }
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}

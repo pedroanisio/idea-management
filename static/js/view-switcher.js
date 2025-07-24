@@ -125,6 +125,9 @@ function applyFlowLayout(container) {
 function initializeFilters() {
     const filters = document.querySelectorAll('select[name="status"], select[name="cycle"], select[name="phase"], select[name="tech_stack"]');
     
+    // If no filters exist, return early
+    if (filters.length === 0) return;
+    
     filters.forEach(filter => {
         filter.addEventListener('change', function() {
             applyFilters();
@@ -132,7 +135,8 @@ function initializeFilters() {
     });
     
     // Add reset filters button
-    const filtersContainer = document.querySelector('.filters') || document.querySelector('select[name="status"]').closest('div').parentElement;
+    const filtersContainer = document.querySelector('.filters') || 
+        (document.querySelector('select[name="status"]')?.closest('div')?.parentElement);
     
     if (filtersContainer) {
         const resetButton = document.createElement('button');
