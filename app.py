@@ -1542,10 +1542,11 @@ def create_app():
 
     @app.route('/ideas/<int:id>/tech-stacks')
     def idea_tech_stacks(id):
-        cycle = IdeaEvolutionCycle.query.get_or_404(id)
-        return jsonify({
-            'tech_stacks': [stack.id for stack in cycle.tech_stacks]
-        })
+        return render_template('ideas/tech_stacks.html', idea=Idea.query.get_or_404(id))
+
+    @app.route('/.well-known/appspecific/com.chrome.devtools.json')
+    def chrome_devtools():
+        return jsonify({}), 200
 
     # Error handlers
     @app.errorhandler(404)
@@ -1561,4 +1562,4 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
